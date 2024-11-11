@@ -11,6 +11,7 @@ import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.IMU;
 import com.qualcomm.robotcore.hardware.configuration.WebcamConfiguration;
 
+import org.firstinspires.ftc.robotcore.external.Telemetry;
 import org.firstinspires.ftc.robotcore.external.hardware.camera.WebcamName;
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 import org.firstinspires.ftc.vision.VisionPortal;
@@ -33,9 +34,37 @@ import java.util.List;
 
 @TeleOp
 public class SampleDrive extends LinearOpMode{
+
+    int cameraMonitorViewId;
+    //int cameraMonitorViewId = hardwareMap.appContext.getResources().getIdentifier("cameraMonitorViewId", "id", hardwareMap.appContext.getPackageName());
+    OpenCvCamera camera;// = OpenCvCameraFactory.getInstance().createWebcam(hardwareMap.get(WebcamName.class, "webcam"), 1);
+    VisionPipeline visionPipeline = new VisionPipeline();
+    public void activateYellowPipelineCamera1(){
+        cameraMonitorViewId = hardwareMap.appContext.getResources().getIdentifier("cameraMonitorViewId", "id", hardwareMap.appContext.getPackageName());
+        camera = OpenCvCameraFactory.getInstance().createWebcam(hardwareMap.get(WebcamName.class, "webcam"), cameraMonitorViewId);
+        camera.setPipeline(visionPipeline);
+        camera.openCameraDeviceAsync(new OpenCvCamera.AsyncCameraOpenListener()
+        {
+            @Override
+            public void onOpened()
+            {
+                camera.startStreaming(1280,720, OpenCvCameraRotation.UPRIGHT);
+                telemetry.addData("Camera Opened! ", "");
+                telemetry.update();
+            }
+
+            @Override
+            public void onError(int errorCode)
+            {
+
+            }
+        });
+    }
     @Override
     public void runOpMode() throws InterruptedException {
 
+        cameraMonitorViewId = hardwareMap.appContext.getResources().getIdentifier("cameraMonitorViewId", "id", hardwareMap.appContext.getPackageName());
+        camera = OpenCvCameraFactory.getInstance().createWebcam(hardwareMap.get(WebcamName.class, "webcam"), cameraMonitorViewId);
 
 
         AprilTagProcessor myAprilTagProcessor;
@@ -77,23 +106,21 @@ public class SampleDrive extends LinearOpMode{
         imu.resetYaw();
         boolean rightTriggerRotate = false;
         boolean leftTriggerRotate = false;
+
+        // WHILE LOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOP
         while (opModeIsActive()) {
 
+            telemetry.addData("1 = working", visionPipeline.getI());
+            openCvCamera.setPipeline(visionPipeline);
             telemetry.addData("webcam", portal.getCameraState());
             for (AprilTagDetection aprilTagDetection : myAprilTagProcessor.getDetections()) {
                 telemetry.addData("april tag id", aprilTagDetection.id);
                 telemetry.addData("decisionMargin", aprilTagDetection.decisionMargin);
             }
-            VisionPipeline detection = new VisionPipeline();
-
-
-            openCvCamera.setPipeline(detection);
-
+            telemetry.addData("rectangle", visionPipeline.getRect());
             double robotHeading = imu.getRobotYawPitchRollAngles().getYaw(AngleUnit.DEGREES);
 
             telemetry.addData("Robot Heading", robotHeading);
-            Rect boundingRect = detection.getRect();
-           Mat mat = new Mat();
 
            // boolean invertControls = false;
 
@@ -271,6 +298,11 @@ public class SampleDrive extends LinearOpMode{
                 rightTriggerRotate = BumperRotation.stopAtClosestInterval(robotHeading, telemetry);
             }
         }
+    }
+    public void WriteTelemetry(String messageCaption,String messageValue)
+    {
+        telemetry.addData(messageCaption, messageValue);
+        telemetry.update();
     }
 
 }

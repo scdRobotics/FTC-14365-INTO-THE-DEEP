@@ -14,12 +14,17 @@ import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.IMU;
 import com.qualcomm.robotcore.hardware.Servo;
 
+import org.firstinspires.ftc.robotcore.external.hardware.camera.WebcamName;
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.Orientation;
+import org.openftc.easyopencv.OpenCvCamera;
+import org.openftc.easyopencv.OpenCvCameraFactory;
+import org.openftc.easyopencv.OpenCvCameraRotation;
 
 @Autonomous
 public class BasicAutonomous extends LinearOpMode {
     @Override
+
     public void runOpMode() throws InterruptedException {
 
         //
@@ -64,50 +69,51 @@ public class BasicAutonomous extends LinearOpMode {
         waitForStart();
 
         if (isStopRequested()) return;
-            sleep(1000);
 
-            int position = frontLeftMotor.getCurrentPosition();
+        sleep(1000);
 
-            telemetry.addData("Encoder Position", position);
+        int position = frontLeftMotor.getCurrentPosition();
 
-
-            // 1000 = 22.5in or around 57.2cm
-
-            int desiredPosition = -4500;
-
-            frontLeftMotor.setTargetPosition(desiredPosition);
-            frontLeftMotor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-            frontLeftMotor.setPower(.7);
-
-            frontRightMotor.setTargetPosition(desiredPosition);
-            frontRightMotor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-            frontRightMotor.setPower(.7);
-
-            backRightMotor.setTargetPosition(desiredPosition);
-            backRightMotor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-            backRightMotor.setPower(.7);
-
-            backLeftMotor.setTargetPosition(desiredPosition);
-            backLeftMotor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-            backLeftMotor.setPower(.7);
-
-            while (frontLeftMotor.isBusy() || frontRightMotor.isBusy() || backLeftMotor.isBusy() || backRightMotor.isBusy()) {
+        telemetry.addData("Encoder Position", position);
 
 
-                double robotHeading = imu.getRobotYawPitchRollAngles().getYaw(AngleUnit.DEGREES);
+        // 1000 = 22.5in or around 57.2cm
 
-                telemetry.addData("Robot Heading", robotHeading);
-                telemetry.addData("Front Left Power", frontLeftMotor.getPower());
-                telemetry.addData("Front Right Power", frontRightMotor.getPower());
-                telemetry.addData("Back Left Power", backLeftMotor.getPower());
-                telemetry.addData("Back Right Power", backRightMotor.getPower());
-                telemetry.update();
-            }
-            frontLeftMotor.setPower(0);
-            frontRightMotor.setPower(0);
-            backLeftMotor.setPower(0);
-            backRightMotor.setPower(0);
-            sleep(1000);
+        int desiredPosition = -4500;
+
+        frontLeftMotor.setTargetPosition(desiredPosition);
+        frontLeftMotor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+        frontLeftMotor.setPower(.7);
+
+        frontRightMotor.setTargetPosition(desiredPosition);
+        frontRightMotor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+        frontRightMotor.setPower(.7);
+
+        backRightMotor.setTargetPosition(desiredPosition);
+        backRightMotor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+        backRightMotor.setPower(.7);
+
+        backLeftMotor.setTargetPosition(desiredPosition);
+        backLeftMotor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+        backLeftMotor.setPower(.7);
+
+        while (frontLeftMotor.isBusy() || frontRightMotor.isBusy() || backLeftMotor.isBusy() || backRightMotor.isBusy()) {
+
+
+            double robotHeading = imu.getRobotYawPitchRollAngles().getYaw(AngleUnit.DEGREES);
+
+            telemetry.addData("Robot Heading", robotHeading);
+            telemetry.addData("Front Left Power", frontLeftMotor.getPower());
+            telemetry.addData("Front Right Power", frontRightMotor.getPower());
+            telemetry.addData("Back Left Power", backLeftMotor.getPower());
+            telemetry.addData("Back Right Power", backRightMotor.getPower());
+            telemetry.update();
+        }
+        frontLeftMotor.setPower(0);
+        frontRightMotor.setPower(0);
+        backLeftMotor.setPower(0);
+        backRightMotor.setPower(0);
+        sleep(1000);
 
 
 
