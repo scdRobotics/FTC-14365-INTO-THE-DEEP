@@ -34,7 +34,7 @@ import org.opencv.core.MatOfPoint2f;
 public class VisionPipeline extends OpenCvPipeline {
 
     enum Stage {
-        ycbcr,
+        YCbCr,
         THRESH,
         MORPH,
         ERODE,
@@ -62,8 +62,8 @@ public class VisionPipeline extends OpenCvPipeline {
 
     Scalar red = new Scalar(255,0,0);
 
-    private VisionColorDetection.Stage stageToRenderToViewport = VisionColorDetection.Stage.DST;
-    private VisionColorDetection.Stage[] stages = VisionColorDetection.Stage.values();
+    private Stage stageToRenderToViewport = Stage.DST;
+    private Stage[] stages = Stage.values();
 
     @Override
     public void onViewportTapped() {

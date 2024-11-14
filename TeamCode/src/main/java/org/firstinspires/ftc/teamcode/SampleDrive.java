@@ -10,6 +10,7 @@ import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.IMU;
 import com.qualcomm.robotcore.hardware.configuration.WebcamConfiguration;
+import com.qualcomm.robotcore.util.ElapsedTime;
 
 import org.firstinspires.ftc.robotcore.external.Telemetry;
 import org.firstinspires.ftc.robotcore.external.hardware.camera.WebcamName;
@@ -23,6 +24,7 @@ import org.opencv.core.Rect;
 import org.opencv.core.Scalar;
 import org.opencv.imgproc.Imgproc;
 import org.openftc.easyopencv.OpenCvCamera;
+import org.openftc.easyopencv.OpenCvCameraBase;
 import org.openftc.easyopencv.OpenCvCameraFactory;
 import org.openftc.easyopencv.OpenCvCameraRotation;
 import org.openftc.easyopencv.OpenCvInternalCamera;
@@ -43,11 +45,15 @@ public class SampleDrive extends LinearOpMode{
         cameraMonitorViewId = hardwareMap.appContext.getResources().getIdentifier("cameraMonitorViewId", "id", hardwareMap.appContext.getPackageName());
         camera = OpenCvCameraFactory.getInstance().createWebcam(hardwareMap.get(WebcamName.class, "webcam"), cameraMonitorViewId);
         camera.setPipeline(visionPipeline);
+
+
         camera.openCameraDeviceAsync(new OpenCvCamera.AsyncCameraOpenListener()
         {
+
             @Override
             public void onOpened()
             {
+
                 camera.startStreaming(1280,720, OpenCvCameraRotation.UPRIGHT);
                 telemetry.addData("Camera Opened! ", "");
                 telemetry.update();
@@ -58,13 +64,20 @@ public class SampleDrive extends LinearOpMode{
             {
 
             }
+
+
         });
     }
+
     @Override
     public void runOpMode() throws InterruptedException {
 
+
+
+
         cameraMonitorViewId = hardwareMap.appContext.getResources().getIdentifier("cameraMonitorViewId", "id", hardwareMap.appContext.getPackageName());
         camera = OpenCvCameraFactory.getInstance().createWebcam(hardwareMap.get(WebcamName.class, "webcam"), cameraMonitorViewId);
+        camera.setPipeline(visionPipeline);
 
 
         AprilTagProcessor myAprilTagProcessor;
@@ -78,7 +91,6 @@ public class SampleDrive extends LinearOpMode{
         DcMotor backRightMotor = hardwareMap.dcMotor.get("backRightMotor");
 
         VisionPortal portal = VisionPortal.easyCreateWithDefaults(hardwareMap.get(WebcamName.class, "webcam"), myAprilTagProcessor);
-
         int cameraMonitorViewId = hardwareMap.appContext.getResources().getIdentifier("cameraMonitorViewId", "id", hardwareMap.appContext.getPackageName());
         OpenCvCamera openCvCamera = OpenCvCameraFactory.getInstance().createInternalCamera(OpenCvInternalCamera.CameraDirection.BACK, cameraMonitorViewId);
 
@@ -109,15 +121,15 @@ public class SampleDrive extends LinearOpMode{
 
         // WHILE LOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOP
         while (opModeIsActive()) {
+            this.activateYellowPipelineCamera1();
+            telemetry.addData("rect", visionPipeline.getRect());
 
-            telemetry.addData("1 = working", visionPipeline.getI());
-            openCvCamera.setPipeline(visionPipeline);
             telemetry.addData("webcam", portal.getCameraState());
             for (AprilTagDetection aprilTagDetection : myAprilTagProcessor.getDetections()) {
                 telemetry.addData("april tag id", aprilTagDetection.id);
                 telemetry.addData("decisionMargin", aprilTagDetection.decisionMargin);
             }
-            telemetry.addData("rectangle", visionPipeline.getRect());
+            telemetry.addData("rect", visionPipeline.getRect());
             double robotHeading = imu.getRobotYawPitchRollAngles().getYaw(AngleUnit.DEGREES);
 
             telemetry.addData("Robot Heading", robotHeading);
