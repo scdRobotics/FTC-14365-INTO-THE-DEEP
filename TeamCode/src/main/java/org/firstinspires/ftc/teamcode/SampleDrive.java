@@ -47,13 +47,13 @@ public class SampleDrive extends LinearOpMode{
         camera.setPipeline(visionPipeline);
 
 
+
         camera.openCameraDeviceAsync(new OpenCvCamera.AsyncCameraOpenListener()
         {
 
             @Override
             public void onOpened()
             {
-
                 camera.startStreaming(1280,720, OpenCvCameraRotation.UPRIGHT);
                 telemetry.addData("Camera Opened! ", "");
                 telemetry.update();
@@ -68,6 +68,18 @@ public class SampleDrive extends LinearOpMode{
 
         });
     }
+    public void closeYellowPipelineCamera1()
+    {
+        cameraMonitorViewId = hardwareMap.appContext.getResources().getIdentifier("cameraMonitorViewId", "id", hardwareMap.appContext.getPackageName());
+        camera = OpenCvCameraFactory.getInstance().createWebcam(hardwareMap.get(WebcamName.class, "webcam"), cameraMonitorViewId);
+
+        camera.closeCameraDeviceAsync(new OpenCvCamera.AsyncCameraCloseListener() {
+            @Override
+            public void onClose() {
+
+            }
+        });
+    }
 
     @Override
     public void runOpMode() throws InterruptedException {
@@ -75,10 +87,19 @@ public class SampleDrive extends LinearOpMode{
 
 
 
+
         cameraMonitorViewId = hardwareMap.appContext.getResources().getIdentifier("cameraMonitorViewId", "id", hardwareMap.appContext.getPackageName());
         camera = OpenCvCameraFactory.getInstance().createWebcam(hardwareMap.get(WebcamName.class, "webcam"), cameraMonitorViewId);
+
+        closeYellowPipelineCamera1();
+
         camera.setPipeline(visionPipeline);
 
+
+
+
+
+        this.activateYellowPipelineCamera1();
 
         AprilTagProcessor myAprilTagProcessor;
 
@@ -121,7 +142,7 @@ public class SampleDrive extends LinearOpMode{
 
         // WHILE LOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOP
         while (opModeIsActive()) {
-            this.activateYellowPipelineCamera1();
+
             telemetry.addData("rect", visionPipeline.getRect());
 
             telemetry.addData("webcam", portal.getCameraState());
@@ -309,6 +330,7 @@ public class SampleDrive extends LinearOpMode{
                 telemetry.addData("Bumper Rotation Angle",rotateTo);
                 rightTriggerRotate = BumperRotation.stopAtClosestInterval(robotHeading, telemetry);
             }
+            camera.closeCameraDevice();
         }
     }
     public void WriteTelemetry(String messageCaption,String messageValue)
