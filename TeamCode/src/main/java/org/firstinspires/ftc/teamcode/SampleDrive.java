@@ -41,12 +41,23 @@ public class SampleDrive extends LinearOpMode{
     //int cameraMonitorViewId = hardwareMap.appContext.getResources().getIdentifier("cameraMonitorViewId", "id", hardwareMap.appContext.getPackageName());
     OpenCvCamera camera;// = OpenCvCameraFactory.getInstance().createWebcam(hardwareMap.get(WebcamName.class, "webcam"), 1);
     VisionPipeline visionPipeline = new VisionPipeline();
+
+    public void closeYellowPipelineCamera1()
+    {
+        cameraMonitorViewId = hardwareMap.appContext.getResources().getIdentifier("cameraMonitorViewId", "id", hardwareMap.appContext.getPackageName());
+        camera = OpenCvCameraFactory.getInstance().createWebcam(hardwareMap.get(WebcamName.class, "webcam"), cameraMonitorViewId);
+
+        camera.closeCameraDeviceAsync(new OpenCvCamera.AsyncCameraCloseListener() {
+            @Override
+            public void onClose() {
+                camera.stopStreaming();
+            }
+        });
+    }
+
     public void activateYellowPipelineCamera1(){
         cameraMonitorViewId = hardwareMap.appContext.getResources().getIdentifier("cameraMonitorViewId", "id", hardwareMap.appContext.getPackageName());
         camera = OpenCvCameraFactory.getInstance().createWebcam(hardwareMap.get(WebcamName.class, "webcam"), cameraMonitorViewId);
-        camera.setPipeline(visionPipeline);
-
-
 
         camera.openCameraDeviceAsync(new OpenCvCamera.AsyncCameraOpenListener()
         {
@@ -57,6 +68,7 @@ public class SampleDrive extends LinearOpMode{
                 camera.startStreaming(1280,720, OpenCvCameraRotation.UPRIGHT);
                 telemetry.addData("Camera Opened! ", "");
                 telemetry.update();
+
             }
 
             @Override
@@ -65,41 +77,25 @@ public class SampleDrive extends LinearOpMode{
 
             }
 
-
         });
     }
-    public void closeYellowPipelineCamera1()
-    {
-        cameraMonitorViewId = hardwareMap.appContext.getResources().getIdentifier("cameraMonitorViewId", "id", hardwareMap.appContext.getPackageName());
-        camera = OpenCvCameraFactory.getInstance().createWebcam(hardwareMap.get(WebcamName.class, "webcam"), cameraMonitorViewId);
 
-        camera.closeCameraDeviceAsync(new OpenCvCamera.AsyncCameraCloseListener() {
-            @Override
-            public void onClose() {
 
-            }
-        });
-    }
 
     @Override
     public void runOpMode() throws InterruptedException {
 
 
-
-
-
         cameraMonitorViewId = hardwareMap.appContext.getResources().getIdentifier("cameraMonitorViewId", "id", hardwareMap.appContext.getPackageName());
         camera = OpenCvCameraFactory.getInstance().createWebcam(hardwareMap.get(WebcamName.class, "webcam"), cameraMonitorViewId);
 
+        camera.closeCameraDevice();
         closeYellowPipelineCamera1();
+        activateYellowPipelineCamera1();
 
         camera.setPipeline(visionPipeline);
 
 
-
-
-
-        this.activateYellowPipelineCamera1();
 
         AprilTagProcessor myAprilTagProcessor;
 
@@ -331,7 +327,10 @@ public class SampleDrive extends LinearOpMode{
                 rightTriggerRotate = BumperRotation.stopAtClosestInterval(robotHeading, telemetry);
             }
             camera.closeCameraDevice();
-        }
+        } //End of while loop
+        closeYellowPipelineCamera1();
+
+        camera.closeCameraDevice();
     }
     public void WriteTelemetry(String messageCaption,String messageValue)
     {
