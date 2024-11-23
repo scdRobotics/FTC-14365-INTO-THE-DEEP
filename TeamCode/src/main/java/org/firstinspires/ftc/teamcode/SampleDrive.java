@@ -1,5 +1,8 @@
 package org.firstinspires.ftc.teamcode;
 
+import static org.firstinspires.ftc.robotcore.external.BlocksOpModeCompanion.hardwareMap;
+import static org.firstinspires.ftc.teamcode.YellowVisionPipeline.boundingRect;
+
 import android.util.Size;
 
 import com.qualcomm.hardware.rev.RevHubOrientationOnRobot;
@@ -37,35 +40,33 @@ import java.util.List;
 @TeleOp
 public class SampleDrive extends LinearOpMode{
 
-    int cameraMonitorViewId;
+    //VisionPipeline visionPipeline = new VisionPipeline();
     //int cameraMonitorViewId = hardwareMap.appContext.getResources().getIdentifier("cameraMonitorViewId", "id", hardwareMap.appContext.getPackageName());
-    OpenCvCamera camera;// = OpenCvCameraFactory.getInstance().createWebcam(hardwareMap.get(WebcamName.class, "webcam"), 1);
-    VisionPipeline visionPipeline = new VisionPipeline();
+    //public OpenCvCamera camera;
+    boolean cameraEnabled;
 
-    public void closeYellowPipelineCamera1()
+    public void closeYellowPipelineCamera1(OpenCvCamera camera)
     {
-        cameraMonitorViewId = hardwareMap.appContext.getResources().getIdentifier("cameraMonitorViewId", "id", hardwareMap.appContext.getPackageName());
-        camera = OpenCvCameraFactory.getInstance().createWebcam(hardwareMap.get(WebcamName.class, "webcam"), cameraMonitorViewId);
-
         camera.closeCameraDeviceAsync(new OpenCvCamera.AsyncCameraCloseListener() {
             @Override
             public void onClose() {
-                camera.stopStreaming();
+                cameraEnabled = false;
+                //camera.startStreaming(1280,720,OpenCvCameraRotation.UPRIGHT);
+                //camera.stopStreaming();
             }
         });
     }
 
-    public void activateYellowPipelineCamera1(){
-        cameraMonitorViewId = hardwareMap.appContext.getResources().getIdentifier("cameraMonitorViewId", "id", hardwareMap.appContext.getPackageName());
-        camera = OpenCvCameraFactory.getInstance().createWebcam(hardwareMap.get(WebcamName.class, "webcam"), cameraMonitorViewId);
-
+    public void activateYellowPipelineCamera1(OpenCvCamera camera){
         camera.openCameraDeviceAsync(new OpenCvCamera.AsyncCameraOpenListener()
         {
 
             @Override
             public void onOpened()
             {
-                camera.startStreaming(1280,720, OpenCvCameraRotation.UPRIGHT);
+
+                cameraEnabled = true;
+                camera.startStreaming(640,480, OpenCvCameraRotation.UPRIGHT);
                 telemetry.addData("Camera Opened! ", "");
                 telemetry.update();
 
@@ -85,21 +86,23 @@ public class SampleDrive extends LinearOpMode{
     @Override
     public void runOpMode() throws InterruptedException {
 
+        YellowVisionPipeline yellowVisionPipeline = new YellowVisionPipeline();
+        BlueVisionPipeline blueVisionPipeline = new BlueVisionPipeline();
+        RedVisionPipeline redVisionPipeline = new RedVisionPipeline();
+        int cameraMonitorViewId = hardwareMap.appContext.getResources().getIdentifier("cameraMonitorViewId", "id", hardwareMap.appContext.getPackageName());
+        OpenCvCamera camera = OpenCvCameraFactory.getInstance().createWebcam(hardwareMap.get(WebcamName.class, "webcam"), cameraMonitorViewId);
+        //telemetry.addData("camera", camera);
+        activateYellowPipelineCamera1(camera);
+        camera.setPipeline(yellowVisionPipeline);
+        sleep(1000);
+        closeYellowPipelineCamera1(camera);
+        Rect rect = yellowVisionPipeline.getRect();
+        telemetry.addData("rect", rect);
 
-        cameraMonitorViewId = hardwareMap.appContext.getResources().getIdentifier("cameraMonitorViewId", "id", hardwareMap.appContext.getPackageName());
-        camera = OpenCvCameraFactory.getInstance().createWebcam(hardwareMap.get(WebcamName.class, "webcam"), cameraMonitorViewId);
 
-        camera.closeCameraDevice();
-        closeYellowPipelineCamera1();
-        activateYellowPipelineCamera1();
+        //AprilTagProcessor myAprilTagProcessor;
 
-        camera.setPipeline(visionPipeline);
-
-
-
-        AprilTagProcessor myAprilTagProcessor;
-
-        myAprilTagProcessor = AprilTagProcessor.easyCreateWithDefaults();
+        //myAprilTagProcessor = AprilTagProcessor.easyCreateWithDefaults();
         // Declare our motors
         // Make sure your ID's match your configuration
         DcMotor frontLeftMotor = hardwareMap.dcMotor.get("frontLeftMotor");
@@ -107,9 +110,9 @@ public class SampleDrive extends LinearOpMode{
         DcMotor frontRightMotor = hardwareMap.dcMotor.get("frontRightMotor");
         DcMotor backRightMotor = hardwareMap.dcMotor.get("backRightMotor");
 
-        VisionPortal portal = VisionPortal.easyCreateWithDefaults(hardwareMap.get(WebcamName.class, "webcam"), myAprilTagProcessor);
-        int cameraMonitorViewId = hardwareMap.appContext.getResources().getIdentifier("cameraMonitorViewId", "id", hardwareMap.appContext.getPackageName());
-        OpenCvCamera openCvCamera = OpenCvCameraFactory.getInstance().createInternalCamera(OpenCvInternalCamera.CameraDirection.BACK, cameraMonitorViewId);
+
+
+        //VisionPortal portal = VisionPortal.easyCreateWithDefaults(hardwareMap.get(WebcamName.class, "webcam"), myAprilTagProcessor);
 
         // Reverse the right side motors. This may be wrong for your setup.
         // If your robot moves backwards when commanded to go forwards,
@@ -117,6 +120,8 @@ public class SampleDrive extends LinearOpMode{
         // See the note about this earlier on this page.
         frontRightMotor.setDirection(DcMotorSimple.Direction.REVERSE);
         backRightMotor.setDirection(DcMotorSimple.Direction.REVERSE);
+
+
 
         IMU imu = hardwareMap.get(IMU.class, "imu");
         ColorSensor colorSensor = hardwareMap.get(ColorSensor.class, "colorSensor");
@@ -127,6 +132,8 @@ public class SampleDrive extends LinearOpMode{
 
         imu.initialize(parameters);
 
+// side note:your camera fell off :(
+
         waitForStart();
 
         if (isStopRequested()) return;
@@ -135,18 +142,20 @@ public class SampleDrive extends LinearOpMode{
         imu.resetYaw();
         boolean rightTriggerRotate = false;
         boolean leftTriggerRotate = false;
-
+        boolean isOpened = false;
+        int i = 0;
         // WHILE LOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOP
+        boolean yPressedLastFrame = false;
         while (opModeIsActive()) {
 
-            telemetry.addData("rect", visionPipeline.getRect());
 
-            telemetry.addData("webcam", portal.getCameraState());
-            for (AprilTagDetection aprilTagDetection : myAprilTagProcessor.getDetections()) {
+
+
+            //telemetry.addData("webcam", portal.getCameraState());
+            /*for (AprilTagDetection aprilTagDetection : myAprilTagProcessor.getDetections()) {
                 telemetry.addData("april tag id", aprilTagDetection.id);
                 telemetry.addData("decisionMargin", aprilTagDetection.decisionMargin);
-            }
-            telemetry.addData("rect", visionPipeline.getRect());
+            }*/
             double robotHeading = imu.getRobotYawPitchRollAngles().getYaw(AngleUnit.DEGREES);
 
             telemetry.addData("Robot Heading", robotHeading);
@@ -159,6 +168,8 @@ public class SampleDrive extends LinearOpMode{
             double y = gamepad1.left_stick_y; // Remember, Y stick value is reversed
             double x = -gamepad1.left_stick_x * 1.1; // Counteract imperfect strafing
             double rx = gamepad1.right_stick_x;
+            boolean yButtonDown = gamepad1.y;
+            boolean xButtonDown = gamepad1.x;
             boolean aButtonDown = gamepad1.a;
             boolean bButtonDown = gamepad1.b;
             double rightTrigger = gamepad1.right_trigger;
@@ -169,11 +180,65 @@ public class SampleDrive extends LinearOpMode{
             boolean leftTriggerDown;
             if(leftTrigger > .5d) leftTriggerDown = true;
             else leftTriggerDown = false;
+            if(yButtonDown && !cameraEnabled)
+            {
+                activateYellowPipelineCamera1(camera);
+                camera.setPipeline(yellowVisionPipeline);
+            }
+            if(yButtonDown && cameraEnabled && !yPressedLastFrame)
+            {
+                i++;
+                if(i == 0)
+                {
+                    camera.setPipeline(yellowVisionPipeline);
+                }
+                if(i == 1)
+                {
+                    camera.setPipeline(blueVisionPipeline);
+                }
+                if(i == 2)
+                {
+                    camera.setPipeline(redVisionPipeline);
+                }
+                if(i == 3)
+                {
+                    i = 0;
+                    camera.setPipeline(yellowVisionPipeline);
+                }
+            }
+            if(xButtonDown && cameraEnabled) {
+                closeYellowPipelineCamera1(camera);
+                camera.setPipeline(null);
+            }
+            int rectX = 0;
+            yPressedLastFrame = yButtonDown;
+            if(cameraEnabled)
+            {
+                if(i == 0)
+                {
+                    rect = yellowVisionPipeline.getRect();
+                    rectX = yellowVisionPipeline.getRectX();
+                }
+                if(i == 1)
+                {
+                    rect= blueVisionPipeline.getRect();
+                    rectX = blueVisionPipeline.getRectX();
+                }
+                if(i == 2)
+                {
+                    rect = redVisionPipeline.getRect();
+                    rectX = redVisionPipeline.getRectX();
 
+                }
+            }
+            if(rect != null){
+                telemetry.addData(" Rect", rect);
 
+                telemetry.addData("Rect X value", rectX);
+                telemetry.addData("Rect Y Value", rect.y);
+            }
 
-
-
+            telemetry.addData("i = ", i);
             /*if(invertControls)
             {
                 x = -x;
@@ -182,12 +247,12 @@ public class SampleDrive extends LinearOpMode{
             }*/
 
             // change this value to adjust max speed
-            double maxSpeed = 1;
+            double maxSpeed = .5;
             // change these values to change max speed in specific directions. Keep same as maxSpeed for no impact
-            double backwardsMaxSpeed = 1;
-            double forwardMaxSpeed = 1;
-            double rightMaxSpeed = 1;
-            double leftMaxSpeed = 1;
+            double backwardsMaxSpeed = .5;
+            double forwardMaxSpeed = .5;
+            double rightMaxSpeed = .5;
+            double leftMaxSpeed = .5;
 
             if((Math.abs(y) < 0.13))
             {
@@ -326,11 +391,11 @@ public class SampleDrive extends LinearOpMode{
                 telemetry.addData("Bumper Rotation Angle",rotateTo);
                 rightTriggerRotate = BumperRotation.stopAtClosestInterval(robotHeading, telemetry);
             }
-            camera.closeCameraDevice();
-        } //End of while loop
-        closeYellowPipelineCamera1();
 
-        camera.closeCameraDevice();
+        } //End of while loop
+
+        activateYellowPipelineCamera1(camera);
+        //camera.closeCameraDevice();
     }
     public void WriteTelemetry(String messageCaption,String messageValue)
     {
