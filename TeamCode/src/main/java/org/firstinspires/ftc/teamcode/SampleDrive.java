@@ -8,10 +8,12 @@ import android.util.Size;
 import com.qualcomm.hardware.rev.RevHubOrientationOnRobot;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
+import com.qualcomm.robotcore.hardware.CRServo;
 import com.qualcomm.robotcore.hardware.ColorSensor;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.IMU;
+import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.hardware.configuration.WebcamConfiguration;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
@@ -36,7 +38,6 @@ import org.openftc.easyopencv.OpenCvPipeline;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-
 @TeleOp
 public class SampleDrive extends LinearOpMode{
 
@@ -105,10 +106,22 @@ public class SampleDrive extends LinearOpMode{
         //myAprilTagProcessor = AprilTagProcessor.easyCreateWithDefaults();
         // Declare our motors
         // Make sure your ID's match your configuration
-        DcMotor frontLeftMotor = hardwareMap.dcMotor.get("frontLeftMotor");
-        DcMotor backLeftMotor = hardwareMap.dcMotor.get("backLeftMotor");
-        DcMotor frontRightMotor = hardwareMap.dcMotor.get("frontRightMotor");
-        DcMotor backRightMotor = hardwareMap.dcMotor.get("backRightMotor");
+        DcMotor frontLeftMotor = hardwareMap.dcMotor.get("frontLeftWheel");
+        DcMotor backLeftMotor = hardwareMap.dcMotor.get("backLeftWheel");
+        DcMotor frontRightMotor = hardwareMap.dcMotor.get("frontRightWheel");
+        DcMotor backRightMotor = hardwareMap.dcMotor.get("backRightWheel");
+
+        DcMotor leftSlide = hardwareMap.dcMotor.get("leftSlide");
+        DcMotor rightSlide = hardwareMap.dcMotor.get("rightSlide");
+
+        leftSlide.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+        rightSlide.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+
+        CRServo leftSlideIntakeServo = hardwareMap.crservo.get("leftSlideIntakeServo");
+        CRServo rightSlideIntakeServo = hardwareMap.crservo.get("rightSlideIntakeServo");
+
+        Servo bucketRotateServo = hardwareMap.servo.get("bucketServo");
+        CRServo bucketIntakeServo = hardwareMap.crservo.get("bucketIntakeServo");
 
 
 
@@ -120,19 +133,22 @@ public class SampleDrive extends LinearOpMode{
         // See the note about this earlier on this page.
         frontRightMotor.setDirection(DcMotorSimple.Direction.REVERSE);
         backRightMotor.setDirection(DcMotorSimple.Direction.REVERSE);
+        leftSlide.setDirection(DcMotorSimple.Direction.REVERSE);
+        rightSlide.setDirection(DcMotorSimple.Direction.REVERSE);
+
+        leftSlide.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        rightSlide.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
 
 
 
         IMU imu = hardwareMap.get(IMU.class, "imu");
-        ColorSensor colorSensor = hardwareMap.get(ColorSensor.class, "colorSensor");
+        //ColorSensor colorSensor = hardwareMap.get(ColorSensor.class, "colorSensor");
 
         IMU.Parameters parameters = new IMU.Parameters(new RevHubOrientationOnRobot(
                 RevHubOrientationOnRobot.LogoFacingDirection.UP,
                 RevHubOrientationOnRobot.UsbFacingDirection.FORWARD));
 
         imu.initialize(parameters);
-
-// side note:your camera fell off :(
 
         waitForStart();
 
@@ -144,7 +160,9 @@ public class SampleDrive extends LinearOpMode{
         boolean leftTriggerRotate = false;
         boolean isOpened = false;
         int i = 0;
-        // WHILE LOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOP
+
+        /// WHILE LOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOP
+
         boolean yPressedLastFrame = false;
         while (opModeIsActive()) {
 
@@ -175,6 +193,19 @@ public class SampleDrive extends LinearOpMode{
             double rightTrigger = gamepad1.right_trigger;
             double leftTrigger = gamepad1.left_trigger;
             boolean rightTriggerDown;
+
+            boolean dPadUp = gamepad1.dpad_up;
+            boolean dPadDown = gamepad1.dpad_down;
+
+            boolean Gp2AButtonDown = gamepad2.a;
+            boolean Gp2BButtonDown = gamepad2.b;
+
+            boolean Gp2YButtonDown = gamepad2.y;
+            boolean Gp2XButtonDown = gamepad2.x;
+
+            boolean Gp2DPadUp = gamepad2.dpad_up;
+            boolean Gp2DPadDown = gamepad2.dpad_down;
+
             if(rightTrigger > .5d) rightTriggerDown = true;
             else rightTriggerDown = false;
             boolean leftTriggerDown;
@@ -230,7 +261,12 @@ public class SampleDrive extends LinearOpMode{
                     rectX = redVisionPipeline.getRectX();
 
                 }
+
             }
+
+            leftSlide.setPower(1);
+            rightSlide.setPower(1);
+
             if(rect != null){
                 telemetry.addData(" Rect", rect);
 
@@ -329,6 +365,61 @@ public class SampleDrive extends LinearOpMode{
                 telemetry.addData("b Button Down", "");
             }
 
+            leftSlideIntakeServo.setPower(0);
+            rightSlideIntakeServo.setPower(0);
+
+            if(Gp2AButtonDown)
+            {
+                leftSlideIntakeServo.setDirection(CRServo.Direction.FORWARD);
+                rightSlideIntakeServo.setDirection(CRServo.Direction.REVERSE);
+                leftSlideIntakeServo.setPower(0.3);
+                rightSlideIntakeServo.setPower(0.3);
+            }
+            else if(!Gp2BButtonDown)
+            {
+                leftSlideIntakeServo.setPower(0);
+                rightSlideIntakeServo.setPower(0);
+            }
+            if(Gp2BButtonDown)
+            {
+                leftSlideIntakeServo.setDirection(CRServo.Direction.REVERSE);
+                rightSlideIntakeServo.setDirection(CRServo.Direction.FORWARD);
+                leftSlideIntakeServo.setPower(0.3);
+                rightSlideIntakeServo.setPower(0.3);
+            }
+            else if(!Gp2AButtonDown)
+            {
+                leftSlideIntakeServo.setPower(0);
+                rightSlideIntakeServo.setPower(0);
+            }
+            telemetry.addData("GamePad 2 a down", Gp2AButtonDown);
+            telemetry.addData("GamePad 2 b down", Gp2BButtonDown);
+
+            bucketIntakeServo.setPower(0);
+
+            if(Gp2YButtonDown)
+            {
+                bucketIntakeServo.setDirection(DcMotorSimple.Direction.FORWARD);
+                bucketIntakeServo.setPower(0.3);
+            }
+            if(Gp2XButtonDown)
+            {
+                bucketIntakeServo.setDirection(DcMotorSimple.Direction.REVERSE);
+                bucketIntakeServo.setPower(0.3);
+            }
+
+
+            // 1 = idle position, 0.4-5 = collect position
+            if(Gp2DPadUp)
+            {
+                bucketRotateServo.setPosition(1d);
+            }
+            if(Gp2DPadDown)
+            {
+                bucketRotateServo.setPosition(0.45d);
+            }
+           // bucketRotateServo.
+            telemetry.addData("Bucket Pos", bucketRotateServo.getPosition());
 
             //corner movement (front is top right corner) in comments below
 
@@ -391,6 +482,63 @@ public class SampleDrive extends LinearOpMode{
                 telemetry.addData("Bumper Rotation Angle",rotateTo);
                 rightTriggerRotate = BumperRotation.stopAtClosestInterval(robotHeading, telemetry);
             }
+
+            if(dPadUp)
+            {
+                leftSlide.setTargetPosition(leftSlide.getCurrentPosition() + 50);
+                leftSlide.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+                rightSlide.setTargetPosition(rightSlide.getCurrentPosition() - 50);
+                rightSlide.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+                leftSlide.setPower(1);
+                rightSlide.setPower(1);
+            }
+            else if(!dPadDown) {
+                //linearSlidePidLoop.linearSlideController(rightSlide, leftSlide, telemetry);
+                leftSlide.setPower(0);
+                rightSlide.setPower(0);
+                leftSlide.setTargetPosition(leftSlide.getCurrentPosition());
+                leftSlide.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+                rightSlide.setTargetPosition(rightSlide.getCurrentPosition());
+                rightSlide.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+            }
+            if(dPadDown)
+            {
+                leftSlide.setTargetPosition(leftSlide.getCurrentPosition() - 50);
+                leftSlide.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+                rightSlide.setTargetPosition(rightSlide.getCurrentPosition() + 50);
+                rightSlide.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+                leftSlide.setPower(1);
+                rightSlide.setPower(1);
+            }
+            else if(!dPadUp)
+            {
+                //linearSlidePidLoop.linearSlideController(rightSlide, leftSlide, telemetry);
+                leftSlide.setPower(0);
+                rightSlide.setPower(0);
+                rightSlide.setTargetPosition(rightSlide.getCurrentPosition());
+                rightSlide.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+                leftSlide.setTargetPosition(leftSlide.getCurrentPosition());
+                leftSlide.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+            }
+            telemetry.addData("Dpad Down", dPadDown);
+            telemetry.addData("Dpad Up", dPadUp);
+            /*if(rightSlide.getCurrentPosition() > 2820)
+            {
+                rightSlide.setTargetPosition(2800);
+                rightSlide.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+                rightSlide.setPower(0.5);
+            }
+            if(leftSlide.getCurrentPosition() > 2820)
+            {
+                leftSlide.setTargetPosition(2800);
+                leftSlide.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+                leftSlide.setPower(0.5);
+
+            }*/
+
+
+            telemetry.addData("right side pos", rightSlide.getCurrentPosition());
+            telemetry.addData("left side pos", leftSlide.getCurrentPosition());
 
         } //End of while loop
 

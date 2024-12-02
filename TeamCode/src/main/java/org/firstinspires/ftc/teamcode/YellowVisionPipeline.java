@@ -37,7 +37,7 @@ public class YellowVisionPipeline extends OpenCvPipeline {
 
     public static Rect boundingRect;
 
-    Scalar yellowLowThresh = new Scalar(140, 140, 45);
+    Scalar yellowLowThresh = new Scalar(130, 130, 40);
     Scalar yellowHighThresh = new Scalar(255, 170, 108);
 
     Scalar blueLowThresh = new Scalar(0, 40, 150);
@@ -48,7 +48,7 @@ public class YellowVisionPipeline extends OpenCvPipeline {
 
     Scalar red = new Scalar(255,0,0);
 
-    Mat kernel = Imgproc.getStructuringElement(Imgproc.MORPH_RECT, new Size(30, 30));
+    Mat kernel = Imgproc.getStructuringElement(Imgproc.MORPH_RECT, new Size(34, 34));
 
     private Stage stageToRenderToViewport = Stage.DST;
     private Stage[] stages = Stage.values();
