@@ -12,25 +12,25 @@ public class linearSlidePidLoop {
         double baseSlidePos = baseSlide.getCurrentPosition();
         double secondSlidePos = secondSlide.getCurrentPosition();
 
-        if(Math.abs(secondSlidePos) - Math.abs(baseSlidePos) > -2)
+        if(Math.abs(secondSlidePos) - Math.abs(baseSlidePos) > -50)
         {
-            secondSlide.setTargetPosition(secondSlide.getCurrentPosition() + 2);
+            secondSlide.setTargetPosition(secondSlide.getCurrentPosition() + 10);
             secondSlide.setMode(DcMotor.RunMode.RUN_TO_POSITION);
 
             secondSlide.setDirection(DcMotorSimple.Direction.REVERSE);
             secondSlide.setPower(0.2d);
             telemetry.addData("Slide moving down", "");
         }
-        else if(2 >= Math.abs(Math.abs(secondSlidePos) - Math.abs(baseSlidePos)))
+        else if(50 >= Math.abs(Math.abs(secondSlidePos) - Math.abs(baseSlidePos)))
         {
             secondSlide.setTargetPosition(secondSlide.getCurrentPosition());
             secondSlide.setMode(DcMotor.RunMode.RUN_TO_POSITION);
             secondSlide.setPower(0);
             telemetry.addData("Slide done moving", "");
         }
-        if(Math.abs(secondSlidePos) - Math.abs(baseSlidePos) > 2)
+        if(Math.abs(secondSlidePos) - Math.abs(baseSlidePos) > 50)
         {
-            secondSlide.setTargetPosition(secondSlide.getCurrentPosition() + 2);
+            secondSlide.setTargetPosition(secondSlide.getCurrentPosition() + 10);
             secondSlide.setMode(DcMotor.RunMode.RUN_TO_POSITION);
 
             secondSlide.setDirection(DcMotorSimple.Direction.FORWARD);

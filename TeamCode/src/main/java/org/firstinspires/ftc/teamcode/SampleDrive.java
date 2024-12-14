@@ -123,8 +123,6 @@ public class SampleDrive extends LinearOpMode{
         Servo bucketRotateServo = hardwareMap.servo.get("bucketServo");
         CRServo bucketIntakeServo = hardwareMap.crservo.get("bucketIntakeServo");
 
-
-
         //VisionPortal portal = VisionPortal.easyCreateWithDefaults(hardwareMap.get(WebcamName.class, "webcam"), myAprilTagProcessor);
 
         // Reverse the right side motors. This may be wrong for your setup.
@@ -133,11 +131,23 @@ public class SampleDrive extends LinearOpMode{
         // See the note about this earlier on this page.
         frontRightMotor.setDirection(DcMotorSimple.Direction.REVERSE);
         backRightMotor.setDirection(DcMotorSimple.Direction.REVERSE);
+
         leftSlide.setDirection(DcMotorSimple.Direction.REVERSE);
         rightSlide.setDirection(DcMotorSimple.Direction.REVERSE);
 
         leftSlide.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         rightSlide.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+
+        frontRightMotor.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        backRightMotor.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        frontLeftMotor.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        backLeftMotor.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+
+        frontRightMotor.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+        frontLeftMotor.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+        backRightMotor.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+        backLeftMotor.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+
 
 
 
@@ -166,7 +176,8 @@ public class SampleDrive extends LinearOpMode{
         boolean yPressedLastFrame = false;
         while (opModeIsActive()) {
 
-
+            if(yellowVisionPipeline.getycbcrEdge() == null) telemetry.addData("Mat is null", "");
+            else telemetry.addData("Mat is not null", "");
 
 
             //telemetry.addData("webcam", portal.getCameraState());
@@ -182,6 +193,8 @@ public class SampleDrive extends LinearOpMode{
 
             // Toggle Arcade Style controls. Leave false for tank style.
             boolean ArcadeStyle = false;
+
+            int lastDPadUsed;
 
             double y = gamepad1.left_stick_y; // Remember, Y stick value is reversed
             double x = -gamepad1.left_stick_x * 1.1; // Counteract imperfect strafing
@@ -410,7 +423,7 @@ public class SampleDrive extends LinearOpMode{
 
 
             // 1 = idle position, 0.4-5 = collect position
-            if(Gp2DPadUp)
+            /*if(Gp2DPadUp)
             {
                 bucketRotateServo.setPosition(1d);
             }
@@ -418,33 +431,36 @@ public class SampleDrive extends LinearOpMode{
             {
                 bucketRotateServo.setPosition(0.45d);
             }
+            */
+
            // bucketRotateServo.
             telemetry.addData("Bucket Pos", bucketRotateServo.getPosition());
+
 
             //corner movement (front is top right corner) in comments below
 
             //left wheel
-            double frontLeftPower = (y - x - rx);
+            double frontLeftPower = -(y + x + rx);
             //double frontLeftPower = (-x - rx);
 
             //back wheel
-            double backLeftPower = (y + x - rx);
+            double backLeftPower = -(y - x + rx);
             //double backLeftPower = (y - rx);
 
             //front wheel
-            double frontRightPower = (y + x + rx);
+            double frontRightPower = -(y - x - rx);
             //double frontRightPower = (y + rx);
 
             //right wheel
-            double backRightPower = (y - x + rx);
+            double backRightPower = -(y + x - rx);
             //double backRightPower = (-x + rx);
 
-
-
-            frontLeftMotor.setPower(frontLeftPower);
-            backLeftMotor.setPower(backLeftPower);
-            frontRightMotor.setPower(frontRightPower);
-            backRightMotor.setPower(backRightPower);
+            // power (0-1)
+            double z = 1;
+            frontLeftMotor.setPower(z * frontLeftPower);
+            backLeftMotor.setPower(z * backLeftPower);
+            frontRightMotor.setPower(z * frontRightPower);
+            backRightMotor.setPower(z * backRightPower);
 
             Double TotalSpeed = x + y;
             telemetry.addData("X Speed: " + x, "");
@@ -492,15 +508,6 @@ public class SampleDrive extends LinearOpMode{
                 leftSlide.setPower(1);
                 rightSlide.setPower(1);
             }
-            else if(!dPadDown) {
-                //linearSlidePidLoop.linearSlideController(rightSlide, leftSlide, telemetry);
-                leftSlide.setPower(0);
-                rightSlide.setPower(0);
-                leftSlide.setTargetPosition(leftSlide.getCurrentPosition());
-                leftSlide.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-                rightSlide.setTargetPosition(rightSlide.getCurrentPosition());
-                rightSlide.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-            }
             if(dPadDown)
             {
                 leftSlide.setTargetPosition(leftSlide.getCurrentPosition() - 50);
@@ -510,45 +517,47 @@ public class SampleDrive extends LinearOpMode{
                 leftSlide.setPower(1);
                 rightSlide.setPower(1);
             }
-            else if(!dPadUp)
-            {
-                //linearSlidePidLoop.linearSlideController(rightSlide, leftSlide, telemetry);
-                leftSlide.setPower(0);
-                rightSlide.setPower(0);
-                rightSlide.setTargetPosition(rightSlide.getCurrentPosition());
-                rightSlide.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-                leftSlide.setTargetPosition(leftSlide.getCurrentPosition());
-                leftSlide.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-            }
+
             telemetry.addData("Dpad Down", dPadDown);
             telemetry.addData("Dpad Up", dPadUp);
-            /*if(rightSlide.getCurrentPosition() > 2820)
+            if(Gp2DPadUp)
             {
-                rightSlide.setTargetPosition(2800);
-                rightSlide.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-                rightSlide.setPower(0.5);
-            }
-            if(leftSlide.getCurrentPosition() > 2820)
-            {
-                leftSlide.setTargetPosition(2800);
+                leftSlide.setTargetPosition(leftSlide.getCurrentPosition() + 1000);
                 leftSlide.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-                leftSlide.setPower(0.5);
-
-            }*/
-
-
+                rightSlide.setTargetPosition(rightSlide.getCurrentPosition() - 1000);
+                rightSlide.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+                leftSlide.setPower(1);
+                rightSlide.setPower(1);
+            }
+            if(Gp2DPadDown)
+            {
+                leftSlide.setTargetPosition(leftSlide.getCurrentPosition() - 1000);
+                leftSlide.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+                rightSlide.setTargetPosition(rightSlide.getCurrentPosition() + 1000);
+                rightSlide.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+                leftSlide.setPower(1);
+                rightSlide.setPower(1);
+            }
+            if(!Gp2DPadDown && !Gp2DPadUp && !dPadUp && !dPadDown)
+            {
+                leftSlide.setTargetPosition(leftSlide.getCurrentPosition());
+                leftSlide.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+                rightSlide.setTargetPosition(rightSlide.getCurrentPosition());
+                rightSlide.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+            }
             telemetry.addData("right side pos", rightSlide.getCurrentPosition());
             telemetry.addData("left side pos", leftSlide.getCurrentPosition());
+
+            telemetry.addData("backRightPosition", backRightMotor.getCurrentPosition());
+            telemetry.addData("backLeftPosition", backLeftMotor.getCurrentPosition());
+            telemetry.addData("frontRightPosition", frontRightMotor.getCurrentPosition());
+            telemetry.addData("frontLeftPosition", frontLeftMotor.getCurrentPosition());
 
         } //End of while loop
 
         activateYellowPipelineCamera1(camera);
         //camera.closeCameraDevice();
     }
-    public void WriteTelemetry(String messageCaption,String messageValue)
-    {
-        telemetry.addData(messageCaption, messageValue);
-        telemetry.update();
-    }
+
 
 }
