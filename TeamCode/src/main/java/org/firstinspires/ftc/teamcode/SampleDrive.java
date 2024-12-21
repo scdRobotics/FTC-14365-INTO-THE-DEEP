@@ -52,8 +52,6 @@ public class SampleDrive extends LinearOpMode{
             @Override
             public void onClose() {
                 cameraEnabled = false;
-                //camera.startStreaming(1280,720,OpenCvCameraRotation.UPRIGHT);
-                //camera.stopStreaming();
             }
         });
     }
@@ -143,10 +141,10 @@ public class SampleDrive extends LinearOpMode{
         frontLeftMotor.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         backLeftMotor.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
 
-        frontRightMotor.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+        /*frontRightMotor.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
         frontLeftMotor.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
         backRightMotor.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
-        backLeftMotor.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+        backLeftMotor.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER); */
 
 
 
@@ -196,9 +194,10 @@ public class SampleDrive extends LinearOpMode{
 
             int lastDPadUsed;
 
-            double y = gamepad1.left_stick_y; // Remember, Y stick value is reversed
-            double x = -gamepad1.left_stick_x * 1.1; // Counteract imperfect strafing
-            double rx = gamepad1.right_stick_x;
+            double y = Math.abs(gamepad1.left_stick_y) > 0.1? gamepad1.left_stick_y : gamepad2.left_stick_y; // Remember, Y stick value is reversed
+            double x = Math.abs(gamepad1.left_stick_x) > 0.1 ? -gamepad1.left_stick_x * 1.1 : -gamepad2.left_stick_x * 1.1; // Counteract imperfect strafing
+            double rx = Math.abs(gamepad1.right_stick_x) > 0.1 ? gamepad1.right_stick_x : gamepad2.right_stick_x;
+            telemetry.addData("gamepad 2 right stick x", gamepad2.right_stick_x);
             boolean yButtonDown = gamepad1.y;
             boolean xButtonDown = gamepad1.x;
             boolean aButtonDown = gamepad1.a;
@@ -224,11 +223,13 @@ public class SampleDrive extends LinearOpMode{
             boolean leftTriggerDown;
             if(leftTrigger > .5d) leftTriggerDown = true;
             else leftTriggerDown = false;
+
             if(yButtonDown && !cameraEnabled)
             {
                 activateYellowPipelineCamera1(camera);
                 camera.setPipeline(yellowVisionPipeline);
             }
+            //telemetry.addData("camera enabled", cameraEnabled);
             if(yButtonDown && cameraEnabled && !yPressedLastFrame)
             {
                 i++;
@@ -381,26 +382,32 @@ public class SampleDrive extends LinearOpMode{
             leftSlideIntakeServo.setPower(0);
             rightSlideIntakeServo.setPower(0);
 
-            if(Gp2AButtonDown)
+            float gP2RT = gamepad2.right_trigger;
+            float gP2LT = gamepad2.left_trigger;
+            boolean g2LTdown = false;
+            boolean g2RTdown = false;
+            if(gP2RT > 0.05) g2RTdown = true;
+            if(gP2LT > 0.05) g2LTdown = true;
+            if(g2RTdown)
             {
                 leftSlideIntakeServo.setDirection(CRServo.Direction.FORWARD);
                 rightSlideIntakeServo.setDirection(CRServo.Direction.REVERSE);
-                leftSlideIntakeServo.setPower(0.3);
-                rightSlideIntakeServo.setPower(0.3);
+                leftSlideIntakeServo.setPower(gP2RT);
+                rightSlideIntakeServo.setPower(gP2RT);
             }
-            else if(!Gp2BButtonDown)
+            else if(!g2LTdown)
             {
                 leftSlideIntakeServo.setPower(0);
                 rightSlideIntakeServo.setPower(0);
             }
-            if(Gp2BButtonDown)
+            if(g2LTdown)
             {
                 leftSlideIntakeServo.setDirection(CRServo.Direction.REVERSE);
                 rightSlideIntakeServo.setDirection(CRServo.Direction.FORWARD);
-                leftSlideIntakeServo.setPower(0.3);
-                rightSlideIntakeServo.setPower(0.3);
+                leftSlideIntakeServo.setPower(gP2LT);
+                rightSlideIntakeServo.setPower(gP2LT);
             }
-            else if(!Gp2AButtonDown)
+            else if(!g2RTdown)
             {
                 leftSlideIntakeServo.setPower(0);
                 rightSlideIntakeServo.setPower(0);
@@ -410,12 +417,12 @@ public class SampleDrive extends LinearOpMode{
 
             bucketIntakeServo.setPower(0);
 
-            if(Gp2YButtonDown)
+            if(Gp2XButtonDown)
             {
                 bucketIntakeServo.setDirection(DcMotorSimple.Direction.FORWARD);
                 bucketIntakeServo.setPower(0.3);
             }
-            if(Gp2XButtonDown)
+            if(Gp2BButtonDown)
             {
                 bucketIntakeServo.setDirection(DcMotorSimple.Direction.REVERSE);
                 bucketIntakeServo.setPower(0.3);
@@ -436,32 +443,57 @@ public class SampleDrive extends LinearOpMode{
            // bucketRotateServo.
             telemetry.addData("Bucket Pos", bucketRotateServo.getPosition());
 
-
+            telemetry.addData("stick no workie?", gamepad1.left_stick_y);
             //corner movement (front is top right corner) in comments below
+            if (Math.abs(gamepad1.left_stick_y) > 0.1 || Math.abs(gamepad1.left_stick_x) > 0.1 || Math.abs(gamepad1.right_stick_x) > 0.1 || Math.abs(gamepad1.right_stick_y) > 0.1)
+            {
+                //left wheel
+                double frontLeftPower = -(y + x + rx);
+                //double frontLeftPower = (-x - rx);
 
-            //left wheel
-            double frontLeftPower = -(y + x + rx);
-            //double frontLeftPower = (-x - rx);
+                //back wheel
+                double backLeftPower = -(y - x + rx);
+                //double backLeftPower = (y - rx);
 
-            //back wheel
-            double backLeftPower = -(y - x + rx);
-            //double backLeftPower = (y - rx);
+                //front wheel
+                double frontRightPower = -(y - x - rx);
+                //double frontRightPower = (y + rx);
 
-            //front wheel
-            double frontRightPower = -(y - x - rx);
-            //double frontRightPower = (y + rx);
+                //right wheel
+                double backRightPower = -(y + x - rx);
+                //double backRightPower = (-x + rx);
 
-            //right wheel
-            double backRightPower = -(y + x - rx);
-            //double backRightPower = (-x + rx);
+                // power (0-1)
+                double z = 1;
+                frontLeftMotor.setPower(z * frontLeftPower);
+                backLeftMotor.setPower(z * backLeftPower);
+                frontRightMotor.setPower(z * frontRightPower);
+                backRightMotor.setPower(z * backRightPower);
+            }
+            else
+            {
+                double frontLeftPower = -(y + x + rx) * 0.5;
+                //double frontLeftPower = (-x - rx);
 
-            // power (0-1)
-            double z = 1;
-            frontLeftMotor.setPower(z * frontLeftPower);
-            backLeftMotor.setPower(z * backLeftPower);
-            frontRightMotor.setPower(z * frontRightPower);
-            backRightMotor.setPower(z * backRightPower);
+                //back wheel
+                double backLeftPower = -(y - x + rx) * 0.5;
+                //double backLeftPower = (y - rx);
 
+                //front wheel
+                double frontRightPower = -(y - x - rx) * 0.5;
+                //double frontRightPower = (y + rx);
+
+                //right wheel
+                double backRightPower = -(y + x - rx) * 0.5;
+                //double backRightPower = (-x + rx);
+
+                // power (0-1)
+                double z = 1;
+                frontLeftMotor.setPower(z * frontLeftPower);
+                backLeftMotor.setPower(z * backLeftPower);
+                frontRightMotor.setPower(z * frontRightPower);
+                backRightMotor.setPower(z * backRightPower);
+            }
             Double TotalSpeed = x + y;
             telemetry.addData("X Speed: " + x, "");
             telemetry.addData("Y speed: " + y, "");

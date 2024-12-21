@@ -19,11 +19,11 @@ backRightMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
 
     if (currentOrientation > wantedOrientation)
     {
-        frontLeftMotor.setPower(-.5d);
-        backLeftMotor.setPower(-.5d);
+        frontLeftMotor.setPower(-.8d);
+        backLeftMotor.setPower(-.8d);
 
-        frontRightMotor.setPower(.5d);
-        backRightMotor.setPower(.5d);
+        frontRightMotor.setPower(.8d);
+        backRightMotor.setPower(.8d);
         telemetry.addData("turning Right", "");
 
     }
@@ -41,11 +41,11 @@ backRightMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
     {
         telemetry.addData("turning Left", "");
 
-        frontLeftMotor.setPower(.5d);
-        backLeftMotor.setPower(.5d);
+        frontLeftMotor.setPower(.8d);
+        backLeftMotor.setPower(.8d);
 
-        frontRightMotor.setPower(-.5d);
-        backRightMotor.setPower(-.5d);
+        frontRightMotor.setPower(-.8d);
+        backRightMotor.setPower(-.8d);
     }
     telemetry.addData("Normal Calculation", Math.abs(Math.abs(wantedOrientation) - Math.abs(currentOrientation)));
     //telemetry.addData("on 360 base", -currentOrientation + 180);

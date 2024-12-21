@@ -91,8 +91,6 @@ public class YellowVisionPipeline extends OpenCvPipeline {
 
     @Override
     public Mat processFrame(Mat inputMat) {
-        //telemetry.addData("RRRRRRRRRUUUUUNNNNNIIIIIIINNNNNNNNNNNNGGGGGGG", "WE'RE GOING INSANE THIS IS OUR CALL FOR HELP IF YOU SEE THIS IT'S ALREADY TOO LATE PLS HAAAALP");
-        //telemetry.update();
         Imgproc.cvtColor(inputMat, ycbcrMat, Imgproc.COLOR_RGB2YCrCb);
         Imgproc.erode(ycbcrMat, ycbcrMat, kernel);
         Core.inRange(ycbcrMat, yellowLowThresh, yellowHighThresh, ycbcrThresh);
@@ -108,10 +106,6 @@ public class YellowVisionPipeline extends OpenCvPipeline {
         Imgproc.HoughLines(ycbcrEdge, lines, 1, Math.PI/180, 120, 0, 0, -5*Math.PI/180, 5*Math.PI/180);
 
 
-        Mat dst = new Mat();
-
-        inputMat.copyTo(dst);
-
         double[] rovioListEdges = new double[lines.rows()];
 
         for (int x = 0; x < lines.rows(); x++) {
@@ -121,11 +115,11 @@ public class YellowVisionPipeline extends OpenCvPipeline {
             double x0 = a*rho, y0 = b*rho;
             Point pt1 = new Point(Math.round(x0 + 1000*(-b)), Math.round(y0 + 1000*(a)));
             Point pt2 = new Point(Math.round(x0 - 1000*(-b)), Math.round(y0 - 1000*(a)));
-            Imgproc.line(dst, pt1, pt2, new Scalar(0, 255, 0), 3, Imgproc.LINE_AA, 0);
+            Imgproc.line(ycbcrEdge, pt1, pt2, new Scalar(0, 255, 0), 3, Imgproc.LINE_AA, 0);
             rovioListEdges[x] = x0;
         }
         Arrays.sort(rovioListEdges);
-        return ycbcrThresh;
+        return ycbcrEdge;
 /*
         switch (stageToRenderToViewport) {
             case YCbCr: {
