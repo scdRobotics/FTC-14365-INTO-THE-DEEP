@@ -1,43 +1,25 @@
 package org.firstinspires.ftc.teamcode;
 
-import static org.firstinspires.ftc.robotcore.external.BlocksOpModeCompanion.hardwareMap;
-import static org.firstinspires.ftc.teamcode.YellowVisionPipeline.boundingRect;
-
-import android.util.Size;
-
 import com.qualcomm.hardware.rev.RevHubOrientationOnRobot;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.CRServo;
-import com.qualcomm.robotcore.hardware.ColorSensor;
+
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.IMU;
 import com.qualcomm.robotcore.hardware.Servo;
-import com.qualcomm.robotcore.hardware.configuration.WebcamConfiguration;
-import com.qualcomm.robotcore.util.ElapsedTime;
 
-import org.firstinspires.ftc.robotcore.external.Telemetry;
 import org.firstinspires.ftc.robotcore.external.hardware.camera.WebcamName;
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
-import org.firstinspires.ftc.vision.VisionPortal;
-import org.firstinspires.ftc.vision.apriltag.AprilTagDetection;
-import org.firstinspires.ftc.vision.apriltag.AprilTagProcessor;
-import org.opencv.core.Core;
-import org.opencv.core.Mat;
+
 import org.opencv.core.Rect;
-import org.opencv.core.Scalar;
-import org.opencv.imgproc.Imgproc;
+
 import org.openftc.easyopencv.OpenCvCamera;
-import org.openftc.easyopencv.OpenCvCameraBase;
+
 import org.openftc.easyopencv.OpenCvCameraFactory;
 import org.openftc.easyopencv.OpenCvCameraRotation;
-import org.openftc.easyopencv.OpenCvInternalCamera;
-import org.openftc.easyopencv.OpenCvPipeline;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
 @TeleOp
 public class SampleDrive extends LinearOpMode{
 
@@ -67,7 +49,7 @@ public class SampleDrive extends LinearOpMode{
                 cameraEnabled = true;
                 camera.startStreaming(640,480, OpenCvCameraRotation.UPRIGHT);
                 telemetry.addData("Camera Opened! ", "");
-                telemetry.update();
+
 
             }
 
@@ -81,6 +63,8 @@ public class SampleDrive extends LinearOpMode{
     }
 
 
+    double startingRightBucketPos;
+    double startingLeftBucketPos;
 
     @Override
     public void runOpMode() throws InterruptedException {
@@ -109,6 +93,9 @@ public class SampleDrive extends LinearOpMode{
         DcMotor frontRightMotor = hardwareMap.dcMotor.get("frontRightWheel");
         DcMotor backRightMotor = hardwareMap.dcMotor.get("backRightWheel");
 
+        DcMotor rightBucketMotor = hardwareMap.dcMotor.get("rightBucketSlideMotor");
+        DcMotor leftBucketMotor = hardwareMap.dcMotor.get("leftBucketSlideMotor");
+
         DcMotor leftSlide = hardwareMap.dcMotor.get("leftSlide");
         DcMotor rightSlide = hardwareMap.dcMotor.get("rightSlide");
 
@@ -133,8 +120,8 @@ public class SampleDrive extends LinearOpMode{
         leftSlide.setDirection(DcMotorSimple.Direction.REVERSE);
         rightSlide.setDirection(DcMotorSimple.Direction.REVERSE);
 
-        leftSlide.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-        rightSlide.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        //leftSlide.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        //rightSlide.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
 
         frontRightMotor.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         backRightMotor.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
@@ -171,7 +158,12 @@ public class SampleDrive extends LinearOpMode{
 
         /// WHILE LOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOP
 
+        startingRightBucketPos = rightBucketMotor.getCurrentPosition();
+        startingLeftBucketPos = leftBucketMotor.getCurrentPosition();
+
         boolean yPressedLastFrame = false;
+        boolean bumperHeld = false;
+        double rightBumperPos = 0.7;
         while (opModeIsActive()) {
 
             if(yellowVisionPipeline.getycbcrEdge() == null) telemetry.addData("Mat is null", "");
@@ -194,6 +186,7 @@ public class SampleDrive extends LinearOpMode{
 
             int lastDPadUsed;
 
+
             double y = Math.abs(gamepad1.left_stick_y) > 0.1? gamepad1.left_stick_y : gamepad2.left_stick_y; // Remember, Y stick value is reversed
             double x = Math.abs(gamepad1.left_stick_x) > 0.1 ? -gamepad1.left_stick_x * 1.1 : -gamepad2.left_stick_x * 1.1; // Counteract imperfect strafing
             double rx = Math.abs(gamepad1.right_stick_x) > 0.1 ? gamepad1.right_stick_x : gamepad2.right_stick_x;
@@ -202,6 +195,10 @@ public class SampleDrive extends LinearOpMode{
             boolean xButtonDown = gamepad1.x;
             boolean aButtonDown = gamepad1.a;
             boolean bButtonDown = gamepad1.b;
+
+            boolean rightBumper = gamepad2.right_bumper;
+
+
             double rightTrigger = gamepad1.right_trigger;
             double leftTrigger = gamepad1.left_trigger;
             boolean rightTriggerDown;
@@ -499,7 +496,6 @@ public class SampleDrive extends LinearOpMode{
             telemetry.addData("Y speed: " + y, "");
             telemetry.addData("Total Speed: " + TotalSpeed, "" );
             telemetry.addData("Rotation Speed: " + rx, "");
-            telemetry.update();
 
 
             if(rightTriggerDown)
@@ -577,6 +573,41 @@ public class SampleDrive extends LinearOpMode{
                 rightSlide.setTargetPosition(rightSlide.getCurrentPosition());
                 rightSlide.setMode(DcMotor.RunMode.RUN_TO_POSITION);
             }
+            if(Gp2YButtonDown && rightBucketMotor.getCurrentPosition() < 800)
+            {
+                rightBucketMotor.setTargetPosition(rightBucketMotor.getCurrentPosition() + 50);
+                rightBucketMotor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+                rightBucketMotor.setPower(0.3);
+                leftBucketMotor.setTargetPosition(leftBucketMotor.getCurrentPosition() + 50);
+                leftBucketMotor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+                leftBucketMotor.setPower(0.3);
+            }
+            if(Gp2AButtonDown && rightBucketMotor.getCurrentPosition() > startingRightBucketPos)
+            {
+                rightBucketMotor.setTargetPosition(0);
+                rightBucketMotor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+                rightBucketMotor.setPower(0.3);
+                leftBucketMotor.setTargetPosition(0);
+                leftBucketMotor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+                leftBucketMotor.setPower(0.3);
+            }
+            if(rightBumper && !bumperHeld)
+            {
+                telemetry.addData("right bumper pressed", "");
+                if(rightBumperPos == 0.7)
+                {
+                    rightBumperPos = 0.1;
+                }
+                else if(rightBumperPos == 0.1)
+                {
+                    rightBumperPos = 0.7;
+                }
+            }
+            telemetry.addData("bucketRotatePos", rightBumperPos);
+
+            telemetry.addData("rightBucketMotorPos", rightBucketMotor.getCurrentPosition());
+            telemetry.addData("leftBucketMotorPos", leftBucketMotor.getCurrentPosition());
+
             telemetry.addData("right side pos", rightSlide.getCurrentPosition());
             telemetry.addData("left side pos", leftSlide.getCurrentPosition());
 
@@ -585,11 +616,23 @@ public class SampleDrive extends LinearOpMode{
             telemetry.addData("frontRightPosition", frontRightMotor.getCurrentPosition());
             telemetry.addData("frontLeftPosition", frontLeftMotor.getCurrentPosition());
 
+
+            telemetry.update();
+
+            bucketRotateServo.setPosition(rightBumperPos);
+
+            if(rightBumper){
+                bumperHeld = true;
+            }
+            else{
+                bumperHeld = false;
+            }
+
         } //End of while loop
 
         activateYellowPipelineCamera1(camera);
         //camera.closeCameraDevice();
     }
-
+    int x = 0;
 
 }

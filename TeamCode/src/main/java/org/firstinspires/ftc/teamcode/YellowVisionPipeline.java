@@ -89,37 +89,37 @@ public class YellowVisionPipeline extends OpenCvPipeline {
         return ycbcrThresh;
     }
 
+    Mat ycbcrColor = new Mat();
+    Mat erode = new Mat();
+    Mat ycbcrRange = new Mat();
+    Mat ycbcrCanny = new Mat();
+    Mat lines = new Mat();
+    Mat lineOutput = new Mat();
+
     @Override
     public Mat processFrame(Mat inputMat) {
-        Imgproc.cvtColor(inputMat, ycbcrMat, Imgproc.COLOR_RGB2YCrCb);
-        Imgproc.erode(ycbcrMat, ycbcrMat, kernel);
-        Core.inRange(ycbcrMat, yellowLowThresh, yellowHighThresh, ycbcrThresh);
-        Mat ycbcrLine = new Mat();
-        Imgproc.Canny(ycbcrMorph, ycbcrLine, 0, 1000);
+        Imgproc.cvtColor(inputMat, ycbcrColor, Imgproc.COLOR_RGB2YCrCb);
+        Imgproc.erode(ycbcrColor, erode, kernel);
+        Core.inRange(erode, yellowLowThresh, yellowHighThresh, ycbcrRange);
 
-        boundingRect = boundingRect(ycbcrThresh);
-        Imgproc.rectangle(ycbcrThresh, boundingRect, new Scalar(255,255,255));
+        Imgproc.Canny(ycbcrRange, ycbcrCanny, 0, 1000);
 
-        Mat lineMat = new Mat();
-        ycbcrLine.copyTo(lineMat);
-        Mat lines = new Mat();
-        Imgproc.HoughLines(ycbcrEdge, lines, 1, Math.PI/180, 120, 0, 0, -5*Math.PI/180, 5*Math.PI/180);
-
-
-        double[] rovioListEdges = new double[lines.rows()];
-
-        for (int x = 0; x < lines.rows(); x++) {
-            double theta = lines.get(x, 0)[1];
-            double rho = lines.get(x, 0)[0];
-            double a = Math.cos(theta), b = Math.sin(theta);
-            double x0 = a*rho, y0 = b*rho;
-            Point pt1 = new Point(Math.round(x0 + 1000*(-b)), Math.round(y0 + 1000*(a)));
-            Point pt2 = new Point(Math.round(x0 - 1000*(-b)), Math.round(y0 - 1000*(a)));
-            Imgproc.line(ycbcrEdge, pt1, pt2, new Scalar(0, 255, 0), 3, Imgproc.LINE_AA, 0);
-            rovioListEdges[x] = x0;
+        Imgproc.HoughLines(ycbcrCanny, lines, 1, Math.PI/180, 150); // runs the actual detection
+        // Draw the lines
+        if (!lines.empty()){
+            for (int x = 0; x < lines.rows(); x++) {
+                double rho = lines.get(x, 0)[0],
+                        theta = lines.get(x, 0)[1];
+                double a = Math.cos(theta), b = Math.sin(theta);
+                double x0 = a*rho, y0 = b*rho;
+                Point pt1 = new Point(Math.round(x0 + 1000*(-b)), Math.round(y0 + 1000*(a)));
+                Point pt2 = new Point(Math.round(x0 - 1000*(-b)), Math.round(y0 - 1000*(a)));
+                Imgproc.line(lineOutput, pt1, pt2, new Scalar(0, 0, 255), 3, Imgproc.LINE_AA, 0);
+            }
+            return lineOutput;
         }
-        Arrays.sort(rovioListEdges);
-        return ycbcrEdge;
+
+        return ycbcrCanny;
 /*
         switch (stageToRenderToViewport) {
             case YCbCr: {
