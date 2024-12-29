@@ -114,25 +114,21 @@ public class SampleDrive extends LinearOpMode{
         // If your robot moves backwards when commanded to go forwards,
         // reverse the left side instead.
         // See the note about this earlier on this page.
+
         frontRightMotor.setDirection(DcMotorSimple.Direction.REVERSE);
         backRightMotor.setDirection(DcMotorSimple.Direction.REVERSE);
+
+        //frontLeftMotor.setDirection(DcMotorSimple.Direction.REVERSE);
+        //frontRightMotor.setDirection(DcMotorSimple.Direction.REVERSE);
 
         leftSlide.setDirection(DcMotorSimple.Direction.REVERSE);
         rightSlide.setDirection(DcMotorSimple.Direction.REVERSE);
 
-        //leftSlide.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-        //rightSlide.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
 
-        frontRightMotor.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-        backRightMotor.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-        frontLeftMotor.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-        backLeftMotor.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-
-        /*frontRightMotor.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+        frontRightMotor.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
         frontLeftMotor.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
         backRightMotor.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
-        backLeftMotor.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER); */
-
+        backLeftMotor.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
 
 
 
@@ -187,9 +183,17 @@ public class SampleDrive extends LinearOpMode{
             int lastDPadUsed;
 
 
-            double y = Math.abs(gamepad1.left_stick_y) > 0.1? gamepad1.left_stick_y : gamepad2.left_stick_y; // Remember, Y stick value is reversed
+            double y = Math.abs(gamepad1.left_stick_y) > 0.1 ? gamepad1.left_stick_y : gamepad2.left_stick_y; // Remember, Y stick value is reversed
             double x = Math.abs(gamepad1.left_stick_x) > 0.1 ? -gamepad1.left_stick_x * 1.1 : -gamepad2.left_stick_x * 1.1; // Counteract imperfect strafing
+
+            telemetry.addData("x value ", x);
+            telemetry.addData("y value ", y);
+
+
             double rx = Math.abs(gamepad1.right_stick_x) > 0.1 ? gamepad1.right_stick_x : gamepad2.right_stick_x;
+
+            telemetry.addData("rx value ", rx);
+
             telemetry.addData("gamepad 2 right stick x", gamepad2.right_stick_x);
             boolean yButtonDown = gamepad1.y;
             boolean xButtonDown = gamepad1.x;
@@ -275,8 +279,8 @@ public class SampleDrive extends LinearOpMode{
 
             }
 
-            leftSlide.setPower(1);
-            rightSlide.setPower(1);
+//            leftSlide.setPower(1);
+//            rightSlide.setPower(1);
 
             if(rect != null){
                 telemetry.addData(" Rect", rect);
@@ -442,9 +446,10 @@ public class SampleDrive extends LinearOpMode{
 
             telemetry.addData("stick no workie?", gamepad1.left_stick_y);
             //corner movement (front is top right corner) in comments below
-            if (Math.abs(gamepad1.left_stick_y) > 0.1 || Math.abs(gamepad1.left_stick_x) > 0.1 || Math.abs(gamepad1.right_stick_x) > 0.1 || Math.abs(gamepad1.right_stick_y) > 0.1)
+            if (Math.abs(gamepad1.left_stick_y) > 0.1 || Math.abs(gamepad1.left_stick_x) > 0.1 || Math.abs(gamepad1.right_stick_x) > 0.1 )
             {
                 //left wheel
+
                 double frontLeftPower = -(y + x + rx);
                 //double frontLeftPower = (-x - rx);
 
@@ -460,8 +465,15 @@ public class SampleDrive extends LinearOpMode{
                 double backRightPower = -(y + x - rx);
                 //double backRightPower = (-x + rx);
 
+
+
+                telemetry.addData("gamepad 1 moving", frontLeftPower);
+
                 // power (0-1)
                 double z = 1;
+
+                telemetry.addData("frontLeftMotor power", frontLeftMotor.getPower());
+
                 frontLeftMotor.setPower(z * frontLeftPower);
                 backLeftMotor.setPower(z * backLeftPower);
                 frontRightMotor.setPower(z * frontRightPower);
@@ -483,6 +495,8 @@ public class SampleDrive extends LinearOpMode{
                 //right wheel
                 double backRightPower = -(y + x - rx) * 0.5;
                 //double backRightPower = (-x + rx);
+
+                telemetry.addData("gamepad 2 moving", frontLeftPower);
 
                 // power (0-1)
                 double z = 1;
