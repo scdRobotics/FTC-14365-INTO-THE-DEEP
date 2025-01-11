@@ -23,21 +23,32 @@ public class ResetBucketSlide extends LinearOpMode {
 
             if(Gp2YButtonDown)
             {
-                rightBucketMotor.setTargetPosition(rightBucketMotor.getCurrentPosition() + 100);
+                rightBucketMotor.setTargetPosition(rightBucketMotor.getCurrentPosition() + 10);
                 rightBucketMotor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
                 rightBucketMotor.setPower(0.3);
-                leftBucketMotor.setTargetPosition(leftBucketMotor.getCurrentPosition() + 100);
+                leftBucketMotor.setTargetPosition(leftBucketMotor.getCurrentPosition() + 10);
                 leftBucketMotor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-                leftBucketMotor.setPower(0.5);
+                leftBucketMotor.setPower(0.3);
             }
             if(Gp2AButtonDown)
             {
-                rightBucketMotor.setTargetPosition(rightBucketMotor.getCurrentPosition() - 100);
+                rightBucketMotor.setTargetPosition(rightBucketMotor.getCurrentPosition() - 10);
                 rightBucketMotor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
                 rightBucketMotor.setPower(-0.3);
-                leftBucketMotor.setTargetPosition(leftBucketMotor.getCurrentPosition() - 80);
+                leftBucketMotor.setTargetPosition(leftBucketMotor.getCurrentPosition() - 10);
                 leftBucketMotor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-                leftBucketMotor.setPower(-0.5);
+                leftBucketMotor.setPower(-0.3);
+            }
+
+
+            if(!Gp2YButtonDown && !Gp2AButtonDown)
+            {
+                rightBucketMotor.setTargetPosition(rightBucketMotor.getCurrentPosition());
+                rightBucketMotor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+                rightBucketMotor.setPower(0);
+                leftBucketMotor.setTargetPosition(leftBucketMotor.getCurrentPosition());
+                leftBucketMotor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+                leftBucketMotor.setPower(0);
             }
 
 
@@ -45,6 +56,10 @@ public class ResetBucketSlide extends LinearOpMode {
                 rightBucketMotor.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
                 leftBucketMotor.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
             }
+            telemetry.addData("leftSlidePosition", leftBucketMotor.getCurrentPosition());
+            telemetry.addData("RightSlidePosition", rightBucketMotor.getCurrentPosition());
+
+            telemetry.update();
         }
     }
 }

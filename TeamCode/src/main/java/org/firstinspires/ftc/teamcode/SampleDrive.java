@@ -20,6 +20,8 @@ import org.openftc.easyopencv.OpenCvCamera;
 import org.openftc.easyopencv.OpenCvCameraFactory;
 import org.openftc.easyopencv.OpenCvCameraRotation;
 
+import java.security.cert.CertPathValidatorException;
+
 @TeleOp
 public class SampleDrive extends LinearOpMode{
 
@@ -92,6 +94,11 @@ public class SampleDrive extends LinearOpMode{
         DcMotor backLeftMotor = hardwareMap.dcMotor.get("backLeftWheel");
         DcMotor frontRightMotor = hardwareMap.dcMotor.get("frontRightWheel");
         DcMotor backRightMotor = hardwareMap.dcMotor.get("backRightWheel");
+
+        frontLeftMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        backLeftMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        frontRightMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        backRightMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
 
         DcMotor rightBucketMotor = hardwareMap.dcMotor.get("rightBucketSlideMotor");
         DcMotor leftBucketMotor = hardwareMap.dcMotor.get("leftBucketSlideMotor");
@@ -297,13 +304,7 @@ public class SampleDrive extends LinearOpMode{
                 rx = -rx;
             }*/
 
-            // change this value to adjust max speed
-            double maxSpeed = .5;
-            // change these values to change max speed in specific directions. Keep same as maxSpeed for no impact
-            double backwardsMaxSpeed = .5;
-            double forwardMaxSpeed = .5;
-            double rightMaxSpeed = .5;
-            double leftMaxSpeed = .5;
+
 
             if((Math.abs(y) < 0.13))
             {
@@ -342,21 +343,6 @@ public class SampleDrive extends LinearOpMode{
                 }
             }*/
 
-            if(Math.abs(x) > maxSpeed)
-            {
-                if(x < 0) x = -maxSpeed;
-                else x = maxSpeed;
-            }
-            if(Math.abs(y) > maxSpeed)
-            {
-                if(y < 0) y = -maxSpeed;
-                else y = maxSpeed;
-            }
-
-            if(x > forwardMaxSpeed) x = forwardMaxSpeed;
-            if(x < -backwardsMaxSpeed) x = -backwardsMaxSpeed;
-            if(y > rightMaxSpeed) y = rightMaxSpeed;
-            if(y < -leftMaxSpeed) y = -leftMaxSpeed;
 
 
             // Denominator is the largest motor power (absolute value) or 1
@@ -450,19 +436,19 @@ public class SampleDrive extends LinearOpMode{
             {
                 //left wheel
 
-                double frontLeftPower = -(y + x + rx);
+                double frontLeftPower = (y + x - rx);
                 //double frontLeftPower = (-x - rx);
 
                 //back wheel
-                double backLeftPower = -(y - x + rx);
+                double backLeftPower = (y - x - rx);
                 //double backLeftPower = (y - rx);
 
                 //front wheel
-                double frontRightPower = -(y - x - rx);
+                double frontRightPower = (y - x + rx);
                 //double frontRightPower = (y + rx);
 
                 //right wheel
-                double backRightPower = -(y + x - rx);
+                double backRightPower = (y + x + rx);
                 //double backRightPower = (-x + rx);
 
 
@@ -481,19 +467,19 @@ public class SampleDrive extends LinearOpMode{
             }
             else
             {
-                double frontLeftPower = -(y + x + rx) * 0.5;
+                double frontLeftPower = (y + x + rx) * 0.5;
                 //double frontLeftPower = (-x - rx);
 
                 //back wheel
-                double backLeftPower = -(y - x + rx) * 0.5;
+                double backLeftPower = (y - x + rx) * 0.5;
                 //double backLeftPower = (y - rx);
 
                 //front wheel
-                double frontRightPower = -(y - x - rx) * 0.5;
+                double frontRightPower = (y - x - rx) * 0.5;
                 //double frontRightPower = (y + rx);
 
                 //right wheel
-                double backRightPower = -(y + x - rx) * 0.5;
+                double backRightPower = (y + x - rx) * 0.5;
                 //double backRightPower = (-x + rx);
 
                 telemetry.addData("gamepad 2 moving", frontLeftPower);
@@ -543,18 +529,18 @@ public class SampleDrive extends LinearOpMode{
 
             if(dPadUp)
             {
-                leftSlide.setTargetPosition(leftSlide.getCurrentPosition() + 50);
+                leftSlide.setTargetPosition(leftSlide.getCurrentPosition() - 50);
                 leftSlide.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-                rightSlide.setTargetPosition(rightSlide.getCurrentPosition() - 50);
+                rightSlide.setTargetPosition(rightSlide.getCurrentPosition() + 50);
                 rightSlide.setMode(DcMotor.RunMode.RUN_TO_POSITION);
                 leftSlide.setPower(1);
                 rightSlide.setPower(1);
             }
             if(dPadDown)
             {
-                leftSlide.setTargetPosition(leftSlide.getCurrentPosition() - 50);
+                leftSlide.setTargetPosition(leftSlide.getCurrentPosition() + 50);
                 leftSlide.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-                rightSlide.setTargetPosition(rightSlide.getCurrentPosition() + 50);
+                rightSlide.setTargetPosition(rightSlide.getCurrentPosition() - 50);
                 rightSlide.setMode(DcMotor.RunMode.RUN_TO_POSITION);
                 leftSlide.setPower(1);
                 rightSlide.setPower(1);
@@ -564,15 +550,6 @@ public class SampleDrive extends LinearOpMode{
             telemetry.addData("Dpad Up", dPadUp);
             if(Gp2DPadUp)
             {
-                leftSlide.setTargetPosition(leftSlide.getCurrentPosition() + 1000);
-                leftSlide.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-                rightSlide.setTargetPosition(rightSlide.getCurrentPosition() - 1000);
-                rightSlide.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-                leftSlide.setPower(1);
-                rightSlide.setPower(1);
-            }
-            if(Gp2DPadDown)
-            {
                 leftSlide.setTargetPosition(leftSlide.getCurrentPosition() - 1000);
                 leftSlide.setMode(DcMotor.RunMode.RUN_TO_POSITION);
                 rightSlide.setTargetPosition(rightSlide.getCurrentPosition() + 1000);
@@ -580,6 +557,16 @@ public class SampleDrive extends LinearOpMode{
                 leftSlide.setPower(1);
                 rightSlide.setPower(1);
             }
+            if(Gp2DPadDown)
+            {
+                leftSlide.setTargetPosition(leftSlide.getCurrentPosition() + 1000);
+                leftSlide.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+                rightSlide.setTargetPosition(rightSlide.getCurrentPosition() - 1000);
+                rightSlide.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+                leftSlide.setPower(1);
+                rightSlide.setPower(1);
+            }
+
             if(!Gp2DPadDown && !Gp2DPadUp && !dPadUp && !dPadDown)
             {
                 leftSlide.setTargetPosition(leftSlide.getCurrentPosition());
@@ -587,32 +574,47 @@ public class SampleDrive extends LinearOpMode{
                 rightSlide.setTargetPosition(rightSlide.getCurrentPosition());
                 rightSlide.setMode(DcMotor.RunMode.RUN_TO_POSITION);
             }
-            if(Gp2YButtonDown && rightBucketMotor.getCurrentPosition() < 800)
+            if(Gp2YButtonDown)
             {
-                rightBucketMotor.setTargetPosition(rightBucketMotor.getCurrentPosition() + 50);
+                rightBucketMotor.setTargetPosition(rightBucketMotor.getCurrentPosition() + 70);
                 rightBucketMotor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-                rightBucketMotor.setPower(0.3);
-                leftBucketMotor.setTargetPosition(leftBucketMotor.getCurrentPosition() + 50);
+                rightBucketMotor.setPower(0.4);
+                leftBucketMotor.setTargetPosition(leftBucketMotor.getCurrentPosition() + 70);
                 leftBucketMotor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-                leftBucketMotor.setPower(0.3);
-            }
-            if(Gp2AButtonDown && rightBucketMotor.getCurrentPosition() > startingRightBucketPos)
-            {
-                rightBucketMotor.setTargetPosition(0);
+                leftBucketMotor.setPower(0.4);
+            } else if(Gp2AButtonDown) {
+                rightBucketMotor.setTargetPosition(rightBucketMotor.getCurrentPosition() - 70);
                 rightBucketMotor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-                rightBucketMotor.setPower(0.3);
-                leftBucketMotor.setTargetPosition(0);
+                rightBucketMotor.setPower(0.4);
+                leftBucketMotor.setTargetPosition(leftBucketMotor.getCurrentPosition() - 70);
                 leftBucketMotor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-                leftBucketMotor.setPower(0.3);
+                leftBucketMotor.setPower(0.4);
+            } else {
+                rightBucketMotor.setTargetPosition(rightBucketMotor.getCurrentPosition());
+                rightBucketMotor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+                rightBucketMotor.setPower(0);
+                leftBucketMotor.setTargetPosition(leftBucketMotor.getCurrentPosition());
+                leftBucketMotor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+                leftBucketMotor.setPower(0);
             }
+
+//            if(rightBucketMotor.getCurrentPosition() > 600 || leftBucketMotor.getCurrentPosition() > 600) {
+//                rightBucketMotor.setTargetPosition(rightBucketMotor.getCurrentPosition());
+//                rightBucketMotor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+//                rightBucketMotor.setPower(0);
+//                leftBucketMotor.setTargetPosition(leftBucketMotor.getCurrentPosition());
+//                leftBucketMotor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+//                leftBucketMotor.setPower(0);
+//            }
+
             if(rightBumper && !bumperHeld)
             {
                 telemetry.addData("right bumper pressed", "");
                 if(rightBumperPos == 0.7)
                 {
-                    rightBumperPos = 0.1;
+                    rightBumperPos = 0.2;
                 }
-                else if(rightBumperPos == 0.1)
+                else if(rightBumperPos == 0.2)
                 {
                     rightBumperPos = 0.7;
                 }
@@ -635,12 +637,14 @@ public class SampleDrive extends LinearOpMode{
 
             bucketRotateServo.setPosition(rightBumperPos);
 
-            if(rightBumper){
-                bumperHeld = true;
-            }
-            else{
-                bumperHeld = false;
-            }
+//            if(rightBumper){
+//                bumperHeld = true;
+//            }
+//            else{
+//                bumperHeld = false;
+//            }
+
+            bumperHeld = rightBumper;
 
         } //End of while loop
 
