@@ -21,6 +21,8 @@ import org.openftc.easyopencv.OpenCvCamera;
 import org.openftc.easyopencv.OpenCvCameraFactory;
 import org.openftc.easyopencv.OpenCvCameraRotation;
 
+import java.util.ArrayList;
+
 @Autonomous
 public class BasicAutonomous extends LinearOpMode {
     @Override
@@ -29,12 +31,16 @@ public class BasicAutonomous extends LinearOpMode {
 
         //
         //Declare Motors
-        DcMotor frontLeftMotor = hardwareMap.dcMotor.get("frontLeftMotor");
-        DcMotor backLeftMotor = hardwareMap.dcMotor.get("backLeftMotor");
-        DcMotor frontRightMotor = hardwareMap.dcMotor.get("frontRightMotor");
-        DcMotor backRightMotor = hardwareMap.dcMotor.get("backRightMotor");
+        DcMotor frontLeftMotor = hardwareMap.dcMotor.get("frontLeftWheel");
+        DcMotor backLeftMotor = hardwareMap.dcMotor.get("backLeftWheel");
+        DcMotor frontRightMotor = hardwareMap.dcMotor.get("frontRightWheel");
+        DcMotor backRightMotor = hardwareMap.dcMotor.get("backRightWheel");
 
-        CRServo servo = hardwareMap.crservo.get("servo");
+        CRServo leftSlideIntakeServo = hardwareMap.crservo.get("leftSlideIntakeServo");
+        CRServo rightSlideIntakeServo = hardwareMap.crservo.get("rightSlideIntakeServo");
+
+
+       // CRServo servo = hardwareMap.crservo.get("servo");
 
         frontRightMotor.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         frontLeftMotor.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
@@ -65,99 +71,197 @@ public class BasicAutonomous extends LinearOpMode {
 
         imu.resetYaw();
 
+        gyroSensorOrientation gyroSensorOrientation = new gyroSensorOrientation();
+
+        Double robotHeading = imu.getRobotYawPitchRollAngles().getYaw(AngleUnit.DEGREES);
+
+        telemetry.addData("robot Heading", robotHeading);
+        telemetry.update();
 
         waitForStart();
 
-        if (isStopRequested()) return;
+        boolean isRunning = false;
 
-        sleep(1000);
+        forward(900, 0.6);
 
-        int position = frontLeftMotor.getCurrentPosition();
+        sleep(100);
 
-        telemetry.addData("Encoder Position", position);
+        moveSlide(2800);
 
+        forward(300, 0.3);
 
-        // 1000 = 22.5in or around 57.2cm
+        leftSlideIntakeServo.setDirection(CRServo.Direction.FORWARD);
+        rightSlideIntakeServo.setDirection(CRServo.Direction.REVERSE);
 
-        int desiredPosition = -4500;
+        rightSlideIntakeServo.setPower(1);
+        leftSlideIntakeServo.setPower(1);
 
-        frontLeftMotor.setTargetPosition(desiredPosition);
-        frontLeftMotor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-        frontLeftMotor.setPower(.7);
+        moveSlide(-500);
 
-        frontRightMotor.setTargetPosition(desiredPosition);
-        frontRightMotor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-        frontRightMotor.setPower(.7);
+        rightSlideIntakeServo.setPower(1);
+        leftSlideIntakeServo.setPower(1);
 
-        backRightMotor.setTargetPosition(desiredPosition);
-        backRightMotor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-        backRightMotor.setPower(.7);
+        moveSlide(-700);
 
-        backLeftMotor.setTargetPosition(desiredPosition);
-        backLeftMotor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-        backLeftMotor.setPower(.7);
+        rightSlideIntakeServo.setPower(0);
+        leftSlideIntakeServo.setPower(0);
 
-        while (frontLeftMotor.isBusy() || frontRightMotor.isBusy() || backLeftMotor.isBusy() || backRightMotor.isBusy()) {
+        backwards(650);
 
+        turn(-90, imu);
 
-            double robotHeading = imu.getRobotYawPitchRollAngles().getYaw(AngleUnit.DEGREES);
+        forward(1400, 0.6);
 
-            telemetry.addData("Robot Heading", robotHeading);
-            telemetry.addData("Front Left Power", frontLeftMotor.getPower());
-            telemetry.addData("Front Right Power", frontRightMotor.getPower());
-            telemetry.addData("Back Left Power", backLeftMotor.getPower());
-            telemetry.addData("Back Right Power", backRightMotor.getPower());
-            telemetry.update();
+        turn(-180, imu);
+
+        moveSlide(-1400);
+
+        forward(1225, 0.4);
+
+        //turn(0, imu);
+
+    }
+
+    void turn(double desiredOrientation, IMU imu)
+    {
+        double robotHeading;
+
+        DcMotor frontLeftMotor = hardwareMap.dcMotor.get("frontLeftWheel");
+        DcMotor backLeftMotor = hardwareMap.dcMotor.get("backLeftWheel");
+        DcMotor frontRightMotor = hardwareMap.dcMotor.get("frontRightWheel");
+        DcMotor backRightMotor = hardwareMap.dcMotor.get("backRightWheel");
+
+        while(true)
+        {
+            robotHeading = imu.getRobotYawPitchRollAngles().getYaw(AngleUnit.DEGREES);
+            gyroSensorOrientation.autoOrient(robotHeading, desiredOrientation, 0, frontLeftMotor, frontRightMotor, backRightMotor, backLeftMotor, telemetry);
+
+            if(gyroSensorOrientation.phase == "normal")
+            {
+                break;
+            }
         }
-        frontLeftMotor.setPower(0);
-        frontRightMotor.setPower(0);
-        backLeftMotor.setPower(0);
-        backRightMotor.setPower(0);
-        sleep(1000);
+    }
+
+    void forward(int desiredPosition, double power)
+    {
+        boolean isFinished = false;
+        DcMotor frontLeftMotor = hardwareMap.dcMotor.get("frontLeftWheel");
+        DcMotor backLeftMotor = hardwareMap.dcMotor.get("backLeftWheel");
+        DcMotor frontRightMotor = hardwareMap.dcMotor.get("frontRightWheel");
+        DcMotor backRightMotor = hardwareMap.dcMotor.get("backRightWheel");
+
+        ArrayList<DcMotor> motors = new ArrayList<DcMotor>();
+        motors.add(frontLeftMotor);
+        motors.add(frontRightMotor);
+        motors.add(backLeftMotor);
+        motors.add(backRightMotor);
+
+        for(DcMotor motor : motors)
+        {
+            motor.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
 
 
+            motor.setTargetPosition(-desiredPosition);
+            motor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+            motor.setPower(power);
+        }
 
-        desiredPosition = 5000;
-
-        frontRightMotor.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-        frontLeftMotor.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-        backRightMotor.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-        backLeftMotor.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-
-        frontLeftMotor.setTargetPosition(desiredPosition);
-        frontLeftMotor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-        frontLeftMotor.setPower(.5);
-
-        frontRightMotor.setTargetPosition(-desiredPosition);
-        frontRightMotor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-        frontRightMotor.setPower(.5);
-
-        backRightMotor.setTargetPosition(desiredPosition);
-        backRightMotor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-        backRightMotor.setPower(.5);
-
-        backLeftMotor.setTargetPosition(-desiredPosition);
-        backLeftMotor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-        backLeftMotor.setPower(.5);
-
-
-
-        while (frontLeftMotor.isBusy() && frontRightMotor.isBusy() && backLeftMotor.isBusy() && backRightMotor.isBusy()) {
-
-            double robotHeading = imu.getRobotYawPitchRollAngles().getYaw(AngleUnit.DEGREES);
-
-            telemetry.addData("Robot Heading", robotHeading);
-
-            gyroSensorOrientation.autoOrient(robotHeading, 0, .5d, frontLeftMotor, frontRightMotor, backRightMotor, backLeftMotor, telemetry);
-
-            telemetry.addData("Front Left Power", frontLeftMotor.getPower());
-            telemetry.addData("Front Right Power", frontRightMotor.getPower());
-            telemetry.addData("Back Left Power", backLeftMotor.getPower());
-            telemetry.addData("Back Right Power", backRightMotor.getPower());
+        while(true)
+        {
+            telemetry.addData("frontRightMotor position", frontRightMotor.getCurrentPosition());
+            telemetry.addData("frontRightMotor desired position", frontRightMotor.getTargetPosition());
             telemetry.update();
+
+            if(Math.abs(Math.abs(frontRightMotor.getCurrentPosition()) - Math.abs(frontRightMotor.getTargetPosition())) < 5)
+            {
+                break;
+            }
+
         }
 
     }
+
+    void backwards(int desiredPosition)
+    {
+        boolean isFinished = false;
+        DcMotor frontLeftMotor = hardwareMap.dcMotor.get("frontLeftWheel");
+        DcMotor backLeftMotor = hardwareMap.dcMotor.get("backLeftWheel");
+        DcMotor frontRightMotor = hardwareMap.dcMotor.get("frontRightWheel");
+        DcMotor backRightMotor = hardwareMap.dcMotor.get("backRightWheel");
+
+        ArrayList<DcMotor> motors = new ArrayList<DcMotor>();
+        motors.add(frontLeftMotor);
+        motors.add(frontRightMotor);
+        motors.add(backLeftMotor);
+        motors.add(backRightMotor);
+
+        for(DcMotor motor : motors)
+        {
+            motor.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+
+
+            motor.setTargetPosition(desiredPosition);
+            motor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+            motor.setPower(0.6);
+        }
+
+        while(true)
+        {
+            telemetry.addData("frontRightMotor position", frontRightMotor.getCurrentPosition());
+            telemetry.addData("frontRightMotor desired position", frontRightMotor.getTargetPosition());
+            telemetry.update();
+
+            if(Math.abs(Math.abs(frontRightMotor.getCurrentPosition()) - Math.abs(frontRightMotor.getTargetPosition())) < 5)
+            {
+                break;
+            }
+
+        }
+    }
+
+    void moveSlide(int desiredPosition)
+    {
+        DcMotor leftSlideMotor = hardwareMap.dcMotor.get("leftSlide");
+        DcMotor rightSlideMotor = hardwareMap.dcMotor.get("rightSlide");
+
+        rightSlideMotor.setDirection(DcMotorSimple.Direction.REVERSE);
+
+        ArrayList<DcMotor> motors = new ArrayList<DcMotor>();
+
+        motors.add(leftSlideMotor);
+        motors.add(rightSlideMotor);
+
+        for(DcMotor motor : motors)
+        {
+            motor.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+
+
+            motor.setTargetPosition(desiredPosition);
+            motor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+            motor.setPower(1);
+        }
+
+
+        while(true)
+        {
+            telemetry.addData("RightSlideMotor position", rightSlideMotor.getCurrentPosition());
+            telemetry.addData("RightslideMotor desired position", rightSlideMotor.getTargetPosition());
+            telemetry.update();
+
+            if(Math.abs(Math.abs(rightSlideMotor.getCurrentPosition()) - Math.abs(rightSlideMotor.getTargetPosition())) < 40)
+            {
+                for(DcMotor motor : motors)
+                {
+                    motor.setTargetPosition(motor.getCurrentPosition());
+                }
+                break;
+            }
+
+        }
+    }
+
+
 }
 
 

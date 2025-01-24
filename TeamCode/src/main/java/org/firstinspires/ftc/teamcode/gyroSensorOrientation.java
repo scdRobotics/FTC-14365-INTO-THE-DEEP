@@ -11,90 +11,106 @@ import org.firstinspires.ftc.robotcore.external.Telemetry;
 
 import java.util.ArrayList;
 import java.util.List;
-
 public class gyroSensorOrientation{
 
+    static String phase = "";
+    public static void autoOrient(double currentOrientation, double wantedOrientation, double defaultForce, DcMotor frontLeftMotor, DcMotor frontRightMotor, DcMotor backRightMotor, DcMotor backLeftMotor, Telemetry telemetry, boolean usingFrontRight, boolean usingFrontLeft, boolean usingBackRight, boolean usingBackLeft)
+    {
+        autoOrient(currentOrientation, wantedOrientation, defaultForce, defaultForce, defaultForce, defaultForce, frontLeftMotor, frontRightMotor, backRightMotor, backLeftMotor, telemetry, usingFrontRight, usingFrontLeft, usingBackRight, usingBackLeft);
+    }
     public static void autoOrient(double currentOrientation, double wantedOrientation, double defaultForce, DcMotor frontLeftMotor, DcMotor frontRightMotor, DcMotor backRightMotor, DcMotor backLeftMotor, Telemetry telemetry)
     {
         autoOrient(currentOrientation, wantedOrientation, defaultForce, frontLeftMotor, frontRightMotor, backRightMotor, backLeftMotor, telemetry, true,true,true,true);
     }
-public static void autoOrient(double currentOrientation, double wantedOrientation, double defaultForce, DcMotor frontLeftMotor, DcMotor frontRightMotor, DcMotor backRightMotor, DcMotor backLeftMotor, Telemetry telemetry, boolean usingFrontRight, boolean usingFrontLeft, boolean usingBackRight, boolean usingBackLeft) {
-    frontLeftMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
-frontRightMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
-backLeftMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
-backRightMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+    public static void autoOrient(double currentOrientation, double wantedOrientation, double FLdefaultForce, double FRdefaultForce, double BLdefaultForce, double BRdefaultForce, DcMotor frontLeftMotor, DcMotor frontRightMotor, DcMotor backRightMotor, DcMotor backLeftMotor, Telemetry telemetry, boolean usingFrontRight, boolean usingFrontLeft, boolean usingBackRight, boolean usingBackLeft) {
+        frontLeftMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        frontRightMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        backLeftMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        backRightMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
 
-    List<DcMotor> motors;
+        telemetry.addData("runningAutoOrient", "");
 
-    motors = new ArrayList<>();
+            List<DcMotor> motors;
 
-    motors.add(frontLeftMotor);
-    motors.add(frontRightMotor);
-    motors.add(backLeftMotor);
-    motors.add(backRightMotor);
+            motors = new ArrayList<>();
 
-
-DcMotorSimple.Direction startingDirectionRightMotor = frontRightMotor.getDirection();
-
+            motors.add(frontLeftMotor);
+            motors.add(frontRightMotor);
+            motors.add(backLeftMotor);
+            motors.add(backRightMotor);
 
 
-    if (currentOrientation > wantedOrientation)
-    {
-        frontLeftMotor.setDirection(DcMotorSimple.Direction.REVERSE);
-        frontRightMotor.setDirection(DcMotorSimple.Direction.FORWARD);
+
 
         motors.forEach(motor -> {
-            motor.setTargetPosition(motor.getTargetPosition() != 0 ? motor.getTargetPosition() : motor.getCurrentPosition() + 50);
-            motor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+            if(motor.getMode() != DcMotor.RunMode.RUN_WITHOUT_ENCODER) {
+                motor.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+            }
         });
 
-        frontLeftMotor.setPower(.8d);
-        backLeftMotor.setPower(0);
 
-        frontRightMotor.setPower(.8d);
-        backRightMotor.setPower(0);
-        telemetry.addData("turning Right", currentOrientation);
+        double wantedDegrees = wantedOrientation + 180;
+        double currentDegrees = currentOrientation + 180;
+
+        double distance = Math.abs(currentDegrees - wantedDegrees);
+        double distanceMagnitude = distance / 3.6;
+
+        double power = 0.6 * distanceMagnitude;
+
+        telemetry.addData("Distance from target orientation", distance);
+        telemetry.addData("Distance Magnitude", distanceMagnitude);
+        telemetry.addData("power", power);
+        telemetry.update();
+
+        FLdefaultForce = -FLdefaultForce;
+
+        if (currentOrientation < wantedOrientation)
+        {
+            frontLeftMotor.setPower(Math.abs(FLdefaultForce + power));
+            backLeftMotor.setPower(Math.abs(BLdefaultForce + power));
+
+            frontRightMotor.setPower(-Math.abs(FRdefaultForce + power));
+            backRightMotor.setPower(-Math.abs(BRdefaultForce + power));
+            telemetry.addData("turning Left", currentOrientation);
+            phase = "turning left";
+
+        }
+
+        else if(5d > Math.abs(Math.abs(wantedOrientation) - Math.abs(currentOrientation)))
+        {
+            telemetry.addData("normal", currentOrientation);
+            if(usingFrontLeft) frontLeftMotor.setPower(FLdefaultForce);
+
+
+            if(usingBackLeft) backLeftMotor.setPower(BLdefaultForce);
+
+
+            if(usingFrontRight) frontRightMotor.setPower(FRdefaultForce);
+
+            if(usingBackRight) backRightMotor.setPower(BRdefaultForce);
+
+            phase = "normal";
+
+        }
+        else if (currentOrientation > wantedOrientation) {
+            telemetry.addData("turning Right", currentOrientation);
+
+            frontLeftMotor.setPower(-Math.abs(FLdefaultForce + power));
+            backLeftMotor.setPower(-Math.abs(BLdefaultForce + power));
+
+            frontRightMotor.setPower(Math.abs(FRdefaultForce + power));
+            backRightMotor.setPower(Math.abs(BRdefaultForce + power));
+
+            phase = "turning right";
+        }
+
+
+
+        telemetry.addData("Normal Calculation", Math.abs(Math.abs(wantedOrientation) - Math.abs(currentOrientation)));
+        //telemetry.addData("on 360 base", -currentOrientation + 180);
+        telemetry.addData("Current Orientation", currentOrientation);
+        telemetry.addData("Wanted Orientation", wantedOrientation);
 
     }
-
-    else if(0.02d < Math.abs(Math.abs(wantedOrientation) - Math.abs(currentOrientation)))
-    {
-        frontLeftMotor.setDirection(DcMotorSimple.Direction.FORWARD);
-        frontRightMotor.setDirection(DcMotorSimple.Direction.FORWARD);
-
-        telemetry.addData("normal", currentOrientation);
-        if(usingFrontLeft) frontLeftMotor.setPower(defaultForce);
-        if(usingBackLeft) backLeftMotor.setPower(defaultForce);
-
-        if(usingFrontRight) frontRightMotor.setPower(defaultForce);
-        if(usingBackRight) backRightMotor.setPower(defaultForce);
-    }
-    else if (currentOrientation < wantedOrientation)
-    {
-        frontLeftMotor.setDirection(DcMotorSimple.Direction.FORWARD);
-        frontRightMotor.setDirection(DcMotorSimple.Direction.REVERSE);
-
-        motors.forEach(motor -> {
-            motor.setTargetPosition(motor.getTargetPosition() != 0 ? motor.getTargetPosition() : motor.getCurrentPosition() + 50);
-            motor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-        });
-
-        telemetry.addData("turning Left", currentOrientation);
-
-        frontLeftMotor.setPower(.8d);
-        backLeftMotor.setPower(0);
-
-        frontRightMotor.setPower(.8d);
-        backRightMotor.setPower(0);
-    }
-
-
-
-    telemetry.addData("Normal Calculation", Math.abs(Math.abs(wantedOrientation) - Math.abs(currentOrientation)));
-    //telemetry.addData("on 360 base", -currentOrientation + 180);
-    telemetry.addData("Current Orientation", currentOrientation);
-    telemetry.addData("Wanted Orientation", wantedOrientation);
-
-}
 
 }
