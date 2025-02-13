@@ -45,10 +45,10 @@ public class RedAutoGoForSpecimen extends LinearOpMode {
         PIDFCoefficients pidNew = new PIDFCoefficients(NEW_P, NEW_I, NEW_D, NEW_F);
 
 
-        frontLeftMotor = (DcMotorEx)hardwareMap.get(DcMotor.class, "frontLeftWheel");
-        backLeftMotor = (DcMotorEx)hardwareMap.get(DcMotor.class, "backLeftWheel");
-        frontRightMotor = (DcMotorEx)hardwareMap.get(DcMotor.class, "frontRightWheel");
-        backRightMotor = (DcMotorEx)hardwareMap.get(DcMotor.class, "backRightWheel");
+        frontLeftMotor = (DcMotorEx)hardwareMap.get(DcMotor.class, "frontLeft");
+        backLeftMotor = (DcMotorEx)hardwareMap.get(DcMotor.class, "backLeft");
+        frontRightMotor = (DcMotorEx)hardwareMap.get(DcMotor.class, "frontRight");
+        backRightMotor = (DcMotorEx)hardwareMap.get(DcMotor.class, "backRight");
 
         rightSlideMotor = (DcMotorEx) hardwareMap.get(DcMotor.class, "rightSlide");
         leftSlideMotor = hardwareMap.dcMotor.get("leftSlide");

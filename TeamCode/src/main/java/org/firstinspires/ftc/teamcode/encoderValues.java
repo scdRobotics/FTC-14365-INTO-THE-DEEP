@@ -4,9 +4,13 @@ import static org.firstinspires.ftc.robotcore.external.BlocksOpModeCompanion.har
 import static org.firstinspires.ftc.robotcore.external.BlocksOpModeCompanion.linearOpMode;
 import static org.firstinspires.ftc.robotcore.external.BlocksOpModeCompanion.telemetry;
 
+import com.qualcomm.hardware.rev.RevHubOrientationOnRobot;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
+import com.qualcomm.robotcore.hardware.IMU;
+
+import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 
 import java.util.ArrayList;
 
@@ -17,10 +21,10 @@ public class encoderValues extends LinearOpMode {
 
     public void runOpMode()
     {
-        DcMotor frontLeftMotor = hardwareMap.dcMotor.get("frontLeftWheel");
-        DcMotor backLeftMotor = hardwareMap.dcMotor.get("backLeftWheel");
-        DcMotor frontRightMotor = hardwareMap.dcMotor.get("frontRightWheel");
-        DcMotor backRightMotor = hardwareMap.dcMotor.get("backRightWheel");
+        DcMotor frontLeftMotor = hardwareMap.dcMotor.get("frontLeft");
+        DcMotor backLeftMotor = hardwareMap.dcMotor.get("backLeft");
+        DcMotor frontRightMotor = hardwareMap.dcMotor.get("frontRight");
+        DcMotor backRightMotor = hardwareMap.dcMotor.get("backRight");
 
 
         DcMotor leftSlideMotor = hardwareMap.dcMotor.get("leftSlide");
@@ -34,6 +38,15 @@ public class encoderValues extends LinearOpMode {
         motors.add(backRightMotor);
         motors.add(leftSlideMotor);
         motors.add(rightSlideMotor);
+
+        IMU imu = hardwareMap.get(IMU.class, "imu");
+
+        IMU.Parameters parameters = new IMU.Parameters(new RevHubOrientationOnRobot(
+                RevHubOrientationOnRobot.LogoFacingDirection.UP,
+                RevHubOrientationOnRobot.UsbFacingDirection.FORWARD));
+
+        imu.initialize(parameters);
+
 
         waitForStart();
 
@@ -51,6 +64,8 @@ public class encoderValues extends LinearOpMode {
 
             telemetry.addData("rightSlide pos", rightSlideMotor.getCurrentPosition());
             telemetry.addData("leftSlide pos", leftSlideMotor.getCurrentPosition());
+
+            telemetry.addData("robot heading", imu.getRobotYawPitchRollAngles().getYaw(AngleUnit.DEGREES));
 
             telemetry.update();
 

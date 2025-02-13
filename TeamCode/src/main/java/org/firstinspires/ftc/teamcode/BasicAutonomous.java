@@ -31,10 +31,10 @@ public class BasicAutonomous extends LinearOpMode {
 
         //
         //Declare Motors
-        DcMotor frontLeftMotor = hardwareMap.dcMotor.get("frontLeftWheel");
-        DcMotor backLeftMotor = hardwareMap.dcMotor.get("backLeftWheel");
-        DcMotor frontRightMotor = hardwareMap.dcMotor.get("frontRightWheel");
-        DcMotor backRightMotor = hardwareMap.dcMotor.get("backRightWheel");
+        DcMotor frontLeftMotor = hardwareMap.dcMotor.get("frontLeft");
+        DcMotor backLeftMotor = hardwareMap.dcMotor.get("backLeft");
+        DcMotor frontRightMotor = hardwareMap.dcMotor.get("frontRight");
+        DcMotor backRightMotor = hardwareMap.dcMotor.get("backRight");
 
         CRServo leftSlideIntakeServo = hardwareMap.crservo.get("leftSlideIntakeServo");
         CRServo rightSlideIntakeServo = hardwareMap.crservo.get("rightSlideIntakeServo");
@@ -80,43 +80,34 @@ public class BasicAutonomous extends LinearOpMode {
 
         waitForStart();
 
-        boolean isRunning = false;
-
         forward(900, 0.6);
 
         sleep(100);
 
-        moveSlide(2800);
+        moveSlide(2700);
 
         forward(300, 0.3);
 
         leftSlideIntakeServo.setDirection(CRServo.Direction.FORWARD);
         rightSlideIntakeServo.setDirection(CRServo.Direction.REVERSE);
 
-        rightSlideIntakeServo.setPower(1);
-        leftSlideIntakeServo.setPower(1);
-
-        moveSlide(-500);
-
-        rightSlideIntakeServo.setPower(1);
-        leftSlideIntakeServo.setPower(1);
-
-        moveSlide(-700);
-
-        rightSlideIntakeServo.setPower(0);
-        leftSlideIntakeServo.setPower(0);
+        moveSlide(-1200);
 
         backwards(650);
 
         turn(-90, imu);
 
-        forward(1400, 0.6);
+        forward(1450, 0.6);
 
-        turn(-180, imu);
+        turn(0, imu);
+
+        sleep(100);
+
+        turn(0, imu);
 
         moveSlide(-1400);
 
-        forward(1225, 0.4);
+        //forward(1500, 0.4);
 
         //turn(0, imu);
 
@@ -126,10 +117,10 @@ public class BasicAutonomous extends LinearOpMode {
     {
         double robotHeading;
 
-        DcMotor frontLeftMotor = hardwareMap.dcMotor.get("frontLeftWheel");
-        DcMotor backLeftMotor = hardwareMap.dcMotor.get("backLeftWheel");
-        DcMotor frontRightMotor = hardwareMap.dcMotor.get("frontRightWheel");
-        DcMotor backRightMotor = hardwareMap.dcMotor.get("backRightWheel");
+        DcMotor frontLeftMotor = hardwareMap.dcMotor.get("frontLeft");
+        DcMotor backLeftMotor = hardwareMap.dcMotor.get("backLeft");
+        DcMotor frontRightMotor = hardwareMap.dcMotor.get("frontRight");
+        DcMotor backRightMotor = hardwareMap.dcMotor.get("backRight");
 
         while(true)
         {
@@ -140,16 +131,23 @@ public class BasicAutonomous extends LinearOpMode {
             {
                 break;
             }
+
+            telemetry.addData("robotHeading", robotHeading);
         }
+    }
+
+    void strafe(int desiredPosition)
+    {
+
     }
 
     void forward(int desiredPosition, double power)
     {
         boolean isFinished = false;
-        DcMotor frontLeftMotor = hardwareMap.dcMotor.get("frontLeftWheel");
-        DcMotor backLeftMotor = hardwareMap.dcMotor.get("backLeftWheel");
-        DcMotor frontRightMotor = hardwareMap.dcMotor.get("frontRightWheel");
-        DcMotor backRightMotor = hardwareMap.dcMotor.get("backRightWheel");
+        DcMotor frontLeftMotor = hardwareMap.dcMotor.get("frontLeft");
+        DcMotor backLeftMotor = hardwareMap.dcMotor.get("backLeft");
+        DcMotor frontRightMotor = hardwareMap.dcMotor.get("frontRight");
+        DcMotor backRightMotor = hardwareMap.dcMotor.get("backRight");
 
         ArrayList<DcMotor> motors = new ArrayList<DcMotor>();
         motors.add(frontLeftMotor);
@@ -177,6 +175,10 @@ public class BasicAutonomous extends LinearOpMode {
             {
                 break;
             }
+            if(Math.abs(Math.abs(frontLeftMotor.getCurrentPosition()) - Math.abs(frontLeftMotor.getTargetPosition())) < 5)
+            {
+                break;
+            }
 
         }
 
@@ -185,10 +187,10 @@ public class BasicAutonomous extends LinearOpMode {
     void backwards(int desiredPosition)
     {
         boolean isFinished = false;
-        DcMotor frontLeftMotor = hardwareMap.dcMotor.get("frontLeftWheel");
-        DcMotor backLeftMotor = hardwareMap.dcMotor.get("backLeftWheel");
-        DcMotor frontRightMotor = hardwareMap.dcMotor.get("frontRightWheel");
-        DcMotor backRightMotor = hardwareMap.dcMotor.get("backRightWheel");
+        DcMotor frontLeftMotor = hardwareMap.dcMotor.get("frontLeft");
+        DcMotor backLeftMotor = hardwareMap.dcMotor.get("backLeft");
+        DcMotor frontRightMotor = hardwareMap.dcMotor.get("frontRight");
+        DcMotor backRightMotor = hardwareMap.dcMotor.get("backRight");
 
         ArrayList<DcMotor> motors = new ArrayList<DcMotor>();
         motors.add(frontLeftMotor);
@@ -216,7 +218,10 @@ public class BasicAutonomous extends LinearOpMode {
             {
                 break;
             }
-
+            if(Math.abs(Math.abs(frontLeftMotor.getCurrentPosition()) - Math.abs(frontLeftMotor.getTargetPosition())) < 5)
+            {
+                break;
+            }
         }
     }
 
@@ -225,15 +230,23 @@ public class BasicAutonomous extends LinearOpMode {
         DcMotor leftSlideMotor = hardwareMap.dcMotor.get("leftSlide");
         DcMotor rightSlideMotor = hardwareMap.dcMotor.get("rightSlide");
 
+        CRServo leftSlideIntakeServo = hardwareMap.crservo.get("leftSlideIntakeServo");
+        CRServo rightSlideIntakeServo = hardwareMap.crservo.get("rightSlideIntakeServo");
+
         rightSlideMotor.setDirection(DcMotorSimple.Direction.REVERSE);
 
         ArrayList<DcMotor> motors = new ArrayList<DcMotor>();
+        ArrayList<CRServo> servos = new ArrayList<CRServo>();
 
         motors.add(leftSlideMotor);
         motors.add(rightSlideMotor);
 
+        servos.add(leftSlideIntakeServo);
+        servos.add(rightSlideIntakeServo);
+
         for(DcMotor motor : motors)
         {
+
             motor.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
 
 
@@ -241,12 +254,25 @@ public class BasicAutonomous extends LinearOpMode {
             motor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
             motor.setPower(1);
         }
+        if(desiredPosition < 0)
+        {
+            leftSlideIntakeServo.setDirection(DcMotorSimple.Direction.REVERSE);
+
+            for(CRServo servo : servos)
+            {
+                servo.setPower(1);
+            }
+        }
 
 
         while(true)
         {
             telemetry.addData("RightSlideMotor position", rightSlideMotor.getCurrentPosition());
-            telemetry.addData("RightslideMotor desired position", rightSlideMotor.getTargetPosition());
+            telemetry.addData("LeftSlideMotor position", leftSlideMotor.getCurrentPosition());
+
+
+            telemetry.addData("rightSideDistance", Math.abs(Math.abs(rightSlideMotor.getCurrentPosition()) - Math.abs(rightSlideMotor.getTargetPosition())));
+            telemetry.addData("leftSideDistance", Math.abs(Math.abs(leftSlideMotor.getCurrentPosition()) - Math.abs(leftSlideMotor.getTargetPosition())));
             telemetry.update();
 
             if(Math.abs(Math.abs(rightSlideMotor.getCurrentPosition()) - Math.abs(rightSlideMotor.getTargetPosition())) < 40)
@@ -254,6 +280,22 @@ public class BasicAutonomous extends LinearOpMode {
                 for(DcMotor motor : motors)
                 {
                     motor.setTargetPosition(motor.getCurrentPosition());
+                }
+                for(CRServo servo : servos)
+                {
+                    servo.setPower(0);
+                }
+                break;
+            }
+            if(Math.abs(Math.abs(leftSlideMotor.getCurrentPosition()) - Math.abs(leftSlideMotor.getTargetPosition())) < 40)
+            {
+                for(DcMotor motor : motors)
+                {
+                    motor.setTargetPosition(motor.getCurrentPosition());
+                }
+                for(CRServo servo : servos)
+                {
+                    servo.setPower(0);
                 }
                 break;
             }

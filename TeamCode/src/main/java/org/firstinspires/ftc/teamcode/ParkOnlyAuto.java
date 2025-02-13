@@ -23,10 +23,10 @@ public class ParkOnlyAuto extends LinearOpMode {
     void forward(int desiredPosition, double power)
     {
         boolean isFinished = false;
-        DcMotor frontLeftMotor = hardwareMap.dcMotor.get("frontLeftWheel");
-        DcMotor backLeftMotor = hardwareMap.dcMotor.get("backLeftWheel");
-        DcMotor frontRightMotor = hardwareMap.dcMotor.get("frontRightWheel");
-        DcMotor backRightMotor = hardwareMap.dcMotor.get("backRightWheel");
+        DcMotor frontLeftMotor = hardwareMap.dcMotor.get("frontLeft");
+        DcMotor backLeftMotor = hardwareMap.dcMotor.get("backLeft");
+        DcMotor frontRightMotor = hardwareMap.dcMotor.get("frontRight");
+        DcMotor backRightMotor = hardwareMap.dcMotor.get("backRight");
 
         frontRightMotor.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         frontLeftMotor.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
@@ -52,6 +52,7 @@ public class ParkOnlyAuto extends LinearOpMode {
         motors.add(frontRightMotor);
         motors.add(backLeftMotor);
         motors.add(backRightMotor);
+
 
         for(DcMotor motor : motors)
         {

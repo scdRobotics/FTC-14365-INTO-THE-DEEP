@@ -10,98 +10,29 @@ import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.IMU;
 import com.qualcomm.robotcore.hardware.Servo;
 
-import org.firstinspires.ftc.robotcore.external.hardware.camera.WebcamName;
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
-
-import org.opencv.core.Rect;
-
-import org.openftc.easyopencv.OpenCvCamera;
-
-import org.openftc.easyopencv.OpenCvCameraFactory;
-import org.openftc.easyopencv.OpenCvCameraRotation;
-
-import java.security.cert.CertPathValidatorException;
+import java.util.ArrayList;
 
 @TeleOp
 public class SampleDrive extends LinearOpMode{
-
-    //VisionPipeline visionPipeline = new VisionPipeline();
-    //int cameraMonitorViewId = hardwareMap.appContext.getResources().getIdentifier("cameraMonitorViewId", "id", hardwareMap.appContext.getPackageName());
-    //public OpenCvCamera camera;
-    boolean cameraEnabled;
-
-    public void closeYellowPipelineCamera1(OpenCvCamera camera)
-    {
-        camera.closeCameraDeviceAsync(new OpenCvCamera.AsyncCameraCloseListener() {
-            @Override
-            public void onClose() {
-                cameraEnabled = false;
-            }
-        });
-    }
-
-    public void activateYellowPipelineCamera1(OpenCvCamera camera){
-        camera.openCameraDeviceAsync(new OpenCvCamera.AsyncCameraOpenListener()
-        {
-
-            @Override
-            public void onOpened()
-            {
-
-                cameraEnabled = true;
-                camera.startStreaming(640,480, OpenCvCameraRotation.UPRIGHT);
-                telemetry.addData("Camera Opened! ", "");
-
-
-            }
-
-            @Override
-            public void onError(int errorCode)
-            {
-
-            }
-
-        });
-    }
-
-
     double startingRightBucketPos;
     double startingLeftBucketPos;
 
     @Override
     public void runOpMode() throws InterruptedException {
-
-        YellowVisionPipeline yellowVisionPipeline = new YellowVisionPipeline();
-        BlueVisionPipeline blueVisionPipeline = new BlueVisionPipeline();
-        RedVisionPipeline redVisionPipeline = new RedVisionPipeline();
-        int cameraMonitorViewId = hardwareMap.appContext.getResources().getIdentifier("cameraMonitorViewId", "id", hardwareMap.appContext.getPackageName());
-        OpenCvCamera camera = OpenCvCameraFactory.getInstance().createWebcam(hardwareMap.get(WebcamName.class, "webcam"), cameraMonitorViewId);
-        //telemetry.addData("camera", camera);
-        activateYellowPipelineCamera1(camera);
-        camera.setPipeline(yellowVisionPipeline);
-        sleep(1000);
-        closeYellowPipelineCamera1(camera);
-        Rect rect = yellowVisionPipeline.getRect();
-        telemetry.addData("rect", rect);
-
-
-        //AprilTagProcessor myAprilTagProcessor;
-
-        //myAprilTagProcessor = AprilTagProcessor.easyCreateWithDefaults();
         // Declare our motors
         // Make sure your ID's match your configuration
-        DcMotor frontLeftMotor = hardwareMap.dcMotor.get("frontLeftWheel");
-        DcMotor backLeftMotor = hardwareMap.dcMotor.get("backLeftWheel");
-        DcMotor frontRightMotor = hardwareMap.dcMotor.get("frontRightWheel");
-        DcMotor backRightMotor = hardwareMap.dcMotor.get("backRightWheel");
+        DcMotor frontLeftMotor = hardwareMap.dcMotor.get("frontLeft");
+        DcMotor backLeftMotor = hardwareMap.dcMotor.get("backLeft");
+        DcMotor frontRightMotor = hardwareMap.dcMotor.get("frontRight");
+        DcMotor backRightMotor = hardwareMap.dcMotor.get("backRight");
 
-        frontLeftMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
-        backLeftMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
-        frontRightMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
-        backRightMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+//        frontLeftMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+//        backLeftMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+//        frontRightMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+//        backRightMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
 
-        DcMotor rightBucketMotor = hardwareMap.dcMotor.get("rightBucketSlideMotor");
-        DcMotor leftBucketMotor = hardwareMap.dcMotor.get("leftBucketSlideMotor");
+        DcMotor bucketMotor = hardwareMap.dcMotor.get("bucketSlideMotor");
 
         DcMotor leftSlide = hardwareMap.dcMotor.get("leftSlide");
         DcMotor rightSlide = hardwareMap.dcMotor.get("rightSlide");
@@ -112,10 +43,16 @@ public class SampleDrive extends LinearOpMode{
         CRServo leftSlideIntakeServo = hardwareMap.crservo.get("leftSlideIntakeServo");
         CRServo rightSlideIntakeServo = hardwareMap.crservo.get("rightSlideIntakeServo");
 
-        Servo bucketRotateServo = hardwareMap.servo.get("bucketServo");
-        CRServo bucketIntakeServo = hardwareMap.crservo.get("bucketIntakeServo");
+        Servo clawGrabServo = hardwareMap.servo.get("clawGrabServo");
+        CRServo clawRotateServo = hardwareMap.crservo.get("clawRotateServo");
+        Servo clawFlipServo = hardwareMap.servo.get("clawFlipServo");
 
-        //VisionPortal portal = VisionPortal.easyCreateWithDefaults(hardwareMap.get(WebcamName.class, "webcam"), myAprilTagProcessor);
+        ArrayList<DcMotor> wheelMotors = new ArrayList<DcMotor>();
+
+        wheelMotors.add(frontLeftMotor);
+        wheelMotors.add(backLeftMotor);
+        wheelMotors.add(frontRightMotor);
+        wheelMotors.add(backRightMotor);
 
         // Reverse the right side motors. This may be wrong for your setup.
         // If your robot moves backwards when commanded to go forwards,
@@ -124,9 +61,6 @@ public class SampleDrive extends LinearOpMode{
 
         frontRightMotor.setDirection(DcMotorSimple.Direction.REVERSE);
         backRightMotor.setDirection(DcMotorSimple.Direction.REVERSE);
-
-        //frontLeftMotor.setDirection(DcMotorSimple.Direction.REVERSE);
-        //frontRightMotor.setDirection(DcMotorSimple.Direction.REVERSE);
 
         leftSlide.setDirection(DcMotorSimple.Direction.REVERSE);
         rightSlide.setDirection(DcMotorSimple.Direction.REVERSE);
@@ -140,11 +74,8 @@ public class SampleDrive extends LinearOpMode{
 
 
         IMU imu = hardwareMap.get(IMU.class, "imu");
-        //ColorSensor colorSensor = hardwareMap.get(ColorSensor.class, "colorSensor");
 
-        IMU.Parameters parameters = new IMU.Parameters(new RevHubOrientationOnRobot(
-                RevHubOrientationOnRobot.LogoFacingDirection.UP,
-                RevHubOrientationOnRobot.UsbFacingDirection.FORWARD));
+        IMU.Parameters parameters = new IMU.Parameters(new RevHubOrientationOnRobot(RevHubOrientationOnRobot.LogoFacingDirection.UP, RevHubOrientationOnRobot.UsbFacingDirection.FORWARD));
 
         imu.initialize(parameters);
 
@@ -155,104 +86,68 @@ public class SampleDrive extends LinearOpMode{
         double rotateTo = 0;
         boolean rightTriggerRotate = false;
         boolean leftTriggerRotate = false;
-        boolean isOpened = false;
-        int i = 0;
 
 
-        startingRightBucketPos = rightBucketMotor.getCurrentPosition();
-        startingLeftBucketPos = leftBucketMotor.getCurrentPosition();
+        startingRightBucketPos = bucketMotor.getCurrentPosition();
 
-        boolean yPressedLastFrame = false;
+
         boolean bumperHeld = false;
+        boolean leftBumperHeld = false;
+
         double rightBumperPos = 0.6;
-        double targetOrientation = 0;
-        double frontLeftPower;
-        double backLeftPower;
-        double frontRightPower;
-        double backRightPower;
+        double leftBumperPos = 0;
+
+        double frontLeftPower = 0;
+        double backLeftPower = 0;
+        double frontRightPower = 0;
+        double backRightPower = 0;
 
         double y;
         double x;
         double rx;
 
-        /// WHILE LOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOP
+        boolean isStrafing = false;
+        boolean lastIsStrafing = false;
+
+        double targetOrientation = 0;
+
+        gyroSensorOrientation gyroSensorOrientation1 = new gyroSensorOrientation();
+
+        /// WHILE LOOOOOOOOOOOOOP
         while (opModeIsActive()) {
-
-            if(yellowVisionPipeline.getycbcrEdge() == null) telemetry.addData("Mat is null", "");
-            else telemetry.addData("Mat is not null", "");
-
-
-            //telemetry.addData("webcam", portal.getCameraState());
-            /*for (AprilTagDetection aprilTagDetection : myAprilTagProcessor.getDetections()) {
-                telemetry.addData("april tag id", aprilTagDetection.id);
-                telemetry.addData("decisionMargin", aprilTagDetection.decisionMargin);
-            }*/
             double robotHeading = imu.getRobotYawPitchRollAngles().getYaw(AngleUnit.DEGREES);
 
-            telemetry.addData("Robot Heading", robotHeading);
-
-           // boolean invertControls = false;
-
-            // Toggle Arcade Style controls. Leave false for tank style.
-            boolean ArcadeStyle = false;
-
-            int lastDPadUsed;
             final String driver = "meg";
-
-
-
 
             if(driver != "meg") {
                 y = Math.abs(gamepad1.left_stick_y) > 0.1 ? gamepad1.left_stick_y : gamepad2.left_stick_y; // Remember, Y stick value is reversed
                 x = Math.abs(gamepad1.left_stick_x) > 0.1 ? -gamepad1.left_stick_x * 1.1 : -gamepad2.left_stick_x * 1.1; // Counteract imperfect strafing
                 rx = Math.abs(gamepad1.right_stick_x) > 0.1 ? gamepad1.right_stick_x : gamepad2.right_stick_x;
             }
-            else {
+            else
+            {
                 y = Math.abs(gamepad1.right_stick_y) > 0.1 ? gamepad1.right_stick_y : gamepad2.left_stick_y; // Remember, Y stick value is reversed
                 x = Math.abs(gamepad1.right_stick_x) > 0.1 ? -gamepad1.right_stick_x * 1.1 : -gamepad2.left_stick_x * 1.1; // Counteract imperfect strafing
                 rx = Math.abs(gamepad1.left_stick_x) > 0.1 ? gamepad1.left_stick_x : gamepad2.right_stick_x;
             }
+
             telemetry.addData("Driver", driver);
 
             boolean hasXVal = false;
 
-            if(Math.abs(x) > 0 && rx == 0)
-            {
-                hasXVal = true;
-            }
-            else hasXVal = false;
-            if(hasXVal && targetOrientation == 0)
-            {
-                telemetry.addData("logging robotHeading", "");
-                targetOrientation = robotHeading;
-            }
-            if(!hasXVal)
-            {
-                targetOrientation = 0;
-            }
-
-
             gyroSensorOrientation gyroSensorOrientation = new gyroSensorOrientation();
-
-            telemetry.addData("xVal", hasXVal);
-            telemetry.addData("targetOrientation", targetOrientation);
-            telemetry.addData("robotHeading", robotHeading);
 
             telemetry.addData("x value ", x);
             telemetry.addData("y value ", y);
 
-
-
-
             telemetry.addData("rx value ", rx);
 
             telemetry.addData("gamepad 2 right stick x", gamepad2.right_stick_x);
-            boolean yButtonDown = gamepad1.y;
-            boolean xButtonDown = gamepad1.x;
             boolean aButtonDown = gamepad1.a;
             boolean bButtonDown = gamepad1.b;
 
-            boolean rightBumper = gamepad2.right_bumper;
+            boolean rightBumper = gamepad2.left_bumper;
+            boolean leftBumper = gamepad2.right_bumper;
 
 
             double rightTrigger = gamepad1.right_trigger;
@@ -271,144 +166,30 @@ public class SampleDrive extends LinearOpMode{
             boolean Gp2DPadUp = gamepad2.dpad_up;
             boolean Gp2DPadDown = gamepad2.dpad_down;
 
+
+
             if(rightTrigger > .5d) rightTriggerDown = true;
             else rightTriggerDown = false;
             boolean leftTriggerDown;
             if(leftTrigger > .5d) leftTriggerDown = true;
             else leftTriggerDown = false;
 
-            if(yButtonDown && !cameraEnabled)
-            {
-                activateYellowPipelineCamera1(camera);
-                camera.setPipeline(yellowVisionPipeline);
-            }
-            //telemetry.addData("camera enabled", cameraEnabled);
-            if(yButtonDown && cameraEnabled && !yPressedLastFrame)
-            {
-                i++;
-                if(i == 0)
-                {
-                    camera.setPipeline(yellowVisionPipeline);
-                }
-                if(i == 1)
-                {
-                    camera.setPipeline(blueVisionPipeline);
-                }
-                if(i == 2)
-                {
-                    camera.setPipeline(redVisionPipeline);
-                }
-                if(i == 3)
-                {
-                    i = 0;
-                    camera.setPipeline(yellowVisionPipeline);
-                }
-            }
-            if(xButtonDown && cameraEnabled) {
-                closeYellowPipelineCamera1(camera);
-                camera.setPipeline(null);
-            }
-            int rectX = 0;
-            yPressedLastFrame = yButtonDown;
-            if(cameraEnabled)
-            {
-                if(i == 0)
-                {
-                    rect = yellowVisionPipeline.getRect();
-                    rectX = yellowVisionPipeline.getRectX();
-                }
-                if(i == 1)
-                {
-                    rect= blueVisionPipeline.getRect();
-                    rectX = blueVisionPipeline.getRectX();
-                }
-                if(i == 2)
-                {
-                    rect = redVisionPipeline.getRect();
-                    rectX = redVisionPipeline.getRectX();
-
-                }
-
-            }
-
-//            leftSlide.setPower(1);
-//            rightSlide.setPower(1);
-
-            if(rect != null){
-                telemetry.addData(" Rect", rect);
-
-                telemetry.addData("Rect X value", rectX);
-                telemetry.addData("Rect Y Value", rect.y);
-            }
-
-            telemetry.addData("i = ", i);
-            /*if(invertControls)
-            {
-                x = -x;
-                y = -y;
-                rx = -rx;
-            }*/
-
-
-
             if((Math.abs(y) < 0.13))
             {
-                telemetry.addData("In Deadzone", "");
                 y = 0;
             }
             if(Math.abs(x) < 0.13)
             {
-                telemetry.addData("In Deadzone", "");
                 x = 0;
             }
-
-            //if(Math.abs(x) > Math.abs(y)) y=0; else x = 0;
-
-            //robot only runs at max speed
-            /*if (y != 0)
-            {
-                if(y > 0)
-                {
-                    y = 1;
-                }
-                else
-                {
-                    y = -1;
-                }
-            }
-
-            if(x != 0)
-            {
-                if (x > 0)
-                {
-                    x = 1;
-                }
-                if(x < 0) {
-                    x = -1;
-                }
-            }*/
-
-
-
-            // Denominator is the largest motor power (absolute value) or 1
-            // This ensures all the powers maintain the same ratio,
-            // but only if at least one is out of the range [-1, 1]
-            // x = x * 1.5d;
-
-            // random challenge thing
-            // if(ArcadeStyle) rx = 0;
-
 
             if(aButtonDown)
             {
                 rx += 1;
-                telemetry.addData("abuttondown", "");
             }
-            if (bButtonDown
-            ) {
-
+            if (bButtonDown)
+            {
                 rx -= 1;
-                telemetry.addData("b Button Down", "");
             }
 
             leftSlideIntakeServo.setPower(0);
@@ -418,12 +199,14 @@ public class SampleDrive extends LinearOpMode{
             float gP2LT = gamepad2.left_trigger;
             boolean g2LTdown = false;
             boolean g2RTdown = false;
+
             if(gP2RT > 0.05) g2RTdown = true;
             if(gP2LT > 0.05) g2LTdown = true;
+
             if(g2RTdown)
             {
-                leftSlideIntakeServo.setDirection(CRServo.Direction.FORWARD);
-                rightSlideIntakeServo.setDirection(CRServo.Direction.REVERSE);
+                leftSlideIntakeServo.setDirection(CRServo.Direction.REVERSE);
+                rightSlideIntakeServo.setDirection(CRServo.Direction.FORWARD);
                 leftSlideIntakeServo.setPower(gP2RT);
                 rightSlideIntakeServo.setPower(gP2RT);
             }
@@ -434,8 +217,8 @@ public class SampleDrive extends LinearOpMode{
             }
             if(g2LTdown)
             {
-                leftSlideIntakeServo.setDirection(CRServo.Direction.REVERSE);
-                rightSlideIntakeServo.setDirection(CRServo.Direction.FORWARD);
+                leftSlideIntakeServo.setDirection(CRServo.Direction.FORWARD);
+                rightSlideIntakeServo.setDirection(CRServo.Direction.REVERSE);
                 leftSlideIntakeServo.setPower(gP2LT);
                 rightSlideIntakeServo.setPower(gP2LT);
             }
@@ -444,113 +227,86 @@ public class SampleDrive extends LinearOpMode{
                 leftSlideIntakeServo.setPower(0);
                 rightSlideIntakeServo.setPower(0);
             }
-            telemetry.addData("GamePad 2 a down", Gp2AButtonDown);
-            telemetry.addData("GamePad 2 b down", Gp2BButtonDown);
 
-            bucketIntakeServo.setPower(0);
+
 
             if(Gp2XButtonDown)
             {
-                bucketIntakeServo.setDirection(DcMotorSimple.Direction.FORWARD);
-                bucketIntakeServo.setPower(0.3);
+                clawRotateServo.setPower(-.1);
             }
             if(Gp2BButtonDown)
             {
-                bucketIntakeServo.setDirection(DcMotorSimple.Direction.REVERSE);
-                bucketIntakeServo.setPower(0.3);
+                clawRotateServo.setPower(.1);
+            }
+            else if(!Gp2XButtonDown)
+            {
+                clawRotateServo.setPower(0);
             }
 
+            //clawGrabServo
+            telemetry.addData("claw grab pos", clawGrabServo.getPosition());
+                //corner movement (front is top right corner) in comments below
+                if (Math.abs(gamepad1.right_stick_y) > 0.1 || Math.abs(gamepad1.left_stick_x) > 0.1 || Math.abs(gamepad1.right_stick_x) > 0.1) {
+//                    backLeftMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+//                    backRightMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
 
-            // 1 = idle position, 0.4-5 = collect position
-            /*if(Gp2DPadUp)
-            {
-                bucketRotateServo.setPosition(1d);
-            }
-            if(Gp2DPadDown)
-            {
-                bucketRotateServo.setPosition(0.45d);
-            }
-            */
+//                    if(Math.abs(x) > 0.5)
+//                    {
+//                        x = (x > 0 ? 0.5 : -0.5);
+//                    }
 
-           // bucketRotateServo.
-            telemetry.addData("Bucket Pos", bucketRotateServo.getPosition());
-
-            telemetry.addData("stick no workie?", gamepad1.left_stick_y);
-            //corner movement (front is top right corner) in comments below
-            if (Math.abs(gamepad1.left_stick_y) > 0.1 || Math.abs(gamepad1.left_stick_x) > 0.1 || Math.abs(gamepad1.right_stick_x) > 0.1 )
-            {
-
-
-                //left wheel
-                    frontLeftPower = (y - x - rx);
+                    //left wheel
+                    frontLeftPower = ((y * 2) + (x) - rx);
                     //double frontLeftPower = (-x - rx);
 
                     //back wheel
-                    backLeftPower = (y + x - rx);
+                    backLeftPower = ((y * 2) - (x) - rx);
                     //double backLeftPower = (y - rx);
 
                     //front wheel
-                    frontRightPower = (y + x + rx);
+                    frontRightPower = ((y * 2) - (x) + rx);
                     //double frontRightPower = (y + rx);
 
                     //right wheel
-                    backRightPower = (y - x + rx);
+                    backRightPower = ((y * 2) + (x) + rx);
                     //double backRightPower = (-x + rx);
 
 
-                    telemetry.addData("gamepad 1 moving", frontLeftPower);
+                    //power (0-1)
 
-                    // power (0-1)
-                    double z = 1;
-
-                    telemetry.addData("frontLeftMotor power", frontLeftMotor.getPower());
-                        frontLeftMotor.setPower(z * frontLeftPower);
-                        backLeftMotor.setPower(z * backLeftPower);
-                        frontRightMotor.setPower(z * frontRightPower);
-                        backRightMotor.setPower(z * backRightPower);
-                        telemetry.addData("frontLeftPower", frontLeftPower);
-            }
-            else
-            {
-                frontLeftPower = (y - x + (rx * 2)) * 0.5;
-                //double frontLeftPower = (-x - rx);
-
-                //back wheel
-                backLeftPower = (y + x + (rx * 2)) * 0.5;
-                //double backLeftPower = (y - rx);
-
-                //front wheel
-                frontRightPower = (y + x - (rx * 2)) * 0.5;
-                //double frontRightPower = (y + rx);
-
-                //right wheel
-                backRightPower = (y - x - (rx * 2)) * 0.5;
-                //double backRightPower = (-x + rx);
-
-                telemetry.addData("gamepad 2 moving", frontLeftPower);
-
-                // power (0-1)
-                double z = 1;
+                    final double z = 1;
                     frontLeftMotor.setPower(z * frontLeftPower);
                     backLeftMotor.setPower(z * backLeftPower);
                     frontRightMotor.setPower(z * frontRightPower);
                     backRightMotor.setPower(z * backRightPower);
-            }
 
-            if(targetOrientation != 0)
-            {
-                frontLeftMotor.setPower(frontLeftMotor.getPower() - 0.2);
-                frontRightMotor.setPower(frontRightMotor.getPower() - 0.2);
 
-                backLeftMotor.setPower(backLeftMotor.getPower() + 0.2);
-                backRightMotor.setPower(backRightMotor.getPower() + 0.2);
-                //gyroSensorOrientation.autoOrient(robotHeading, targetOrientation, frontLeftPower, frontRightPower, backLeftPower, backRightPower, frontLeftMotor, frontRightMotor, backRightMotor, backLeftMotor, telemetry, true, true, true, true);
-                telemetry.addData("STRAFING", "");
-            }
+
+                }
+                else {
+
+                    telemetry.addData("gamepad 2 is moving", "");
+
+                    frontLeftPower = (y - x + (rx * 2));
+
+                    //back wheel
+                    backLeftPower = (y + x + (rx * 2));
+
+                    //front wheel
+                    frontRightPower = (y + x - (rx * 2));
+
+                    //right wheel
+                    backRightPower = (y - x - (rx * 2));
+
+                    // power (0-1)
+                    double z = 0.5;
+                    frontLeftMotor.setPower(z * frontLeftPower);
+                    backLeftMotor.setPower(z * backLeftPower);
+                    frontRightMotor.setPower(z * frontRightPower);
+                    backRightMotor.setPower(z * backRightPower);
+                }
 
             Double TotalSpeed = x + y;
-            telemetry.addData("frontLeftMotor power", frontLeftMotor.getPower());
-            telemetry.addData("frontRightMotor power", frontRightMotor.getPower());
             telemetry.addData("X Speed: " + x, "");
             telemetry.addData("Y speed: " + y, "");
             telemetry.addData("Total Speed: " + TotalSpeed, "" );
@@ -561,8 +317,8 @@ public class SampleDrive extends LinearOpMode{
             {
                 rotateTo = BumperRotation.Rotate(robotHeading, "right", telemetry);
                 rightTriggerRotate = true;
-               // gyroSensorOrientation.autoOrient(robotHeading, BumperRotation.Rotate(robotHeading, "right", telemetry), .1, frontLeftMotor, frontRightMotor, backRightMotor, backLeftMotor, telemetry);
-               // telemetry.addData("Bumper Rotation Angle",BumperRotation.Rotate(robotHeading, "right", telemetry));
+                //gyroSensorOrientation.autoOrient(robotHeading, BumperRotation.Rotate(robotHeading, "right", telemetry), .1, frontLeftMotor, frontRightMotor, backRightMotor, backLeftMotor, telemetry);
+                //telemetry.addData("Bumper Rotation Angle",BumperRotation.Rotate(robotHeading, "right", telemetry));
             }
             if(leftTriggerDown)
             {
@@ -578,7 +334,7 @@ public class SampleDrive extends LinearOpMode{
                 telemetry.addData("Bumper Rotation Angle",rotateTo);
                 rightTriggerRotate = BumperRotation.stopAtClosestInterval(robotHeading, telemetry);
             }
-            if(leftTriggerDown)
+            if(leftTriggerRotate)
             {
                 telemetry.addData("remainder", 45 - Math.abs(robotHeading) % 45);
                 gyroSensorOrientation.autoOrient(robotHeading, rotateTo, 0, frontLeftMotor, frontRightMotor, backRightMotor, backLeftMotor, telemetry);
@@ -605,8 +361,6 @@ public class SampleDrive extends LinearOpMode{
                 rightSlide.setPower(1);
             }
 
-            telemetry.addData("Dpad Down", dPadDown);
-            telemetry.addData("Dpad Up", dPadUp);
             if(Gp2DPadUp)
             {
                 leftSlide.setTargetPosition(leftSlide.getCurrentPosition() - 1000);
@@ -635,84 +389,68 @@ public class SampleDrive extends LinearOpMode{
             }
             if(Gp2YButtonDown)
             {
-                rightBucketMotor.setTargetPosition(rightBucketMotor.getCurrentPosition() - 30);
-                rightBucketMotor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-                rightBucketMotor.setPower(0.6);
-                leftBucketMotor.setTargetPosition(leftBucketMotor.getCurrentPosition() - 30);
-                leftBucketMotor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-                leftBucketMotor.setPower(0.6);
+                bucketMotor.setTargetPosition(bucketMotor.getCurrentPosition() + 100);
+                bucketMotor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+                bucketMotor.setPower(0.6);
             }
             if(Gp2AButtonDown) {
-                rightBucketMotor.setTargetPosition(rightBucketMotor.getCurrentPosition() + 5);
-                rightBucketMotor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-                rightBucketMotor.setPower(0.1);
-                leftBucketMotor.setTargetPosition(leftBucketMotor.getCurrentPosition() + 45);
-                leftBucketMotor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-                leftBucketMotor.setPower(0.8);
+                bucketMotor.setTargetPosition(bucketMotor.getCurrentPosition() - 100);
+                bucketMotor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+                bucketMotor.setPower(0.6);
             }
             if(!Gp2AButtonDown && !Gp2YButtonDown) {
-                rightBucketMotor.setTargetPosition(rightBucketMotor.getCurrentPosition());
-                rightBucketMotor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-                rightBucketMotor.setPower(0.0);
-                leftBucketMotor.setTargetPosition(leftBucketMotor.getCurrentPosition());
-                leftBucketMotor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-                leftBucketMotor.setPower(0.0);
+                bucketMotor.setTargetPosition(bucketMotor.getCurrentPosition());
+                bucketMotor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+                bucketMotor.setPower(0.0);
             }
-
-//            if(rightBucketMotor.getCurrentPosition() > 600 || leftBucketMotor.getCurrentPosition() > 600) {
-//                rightBucketMotor.setTargetPosition(rightBucketMotor.getCurrentPosition());
-//                rightBucketMotor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-//                rightBucketMotor.setPower(0);
-//                leftBucketMotor.setTargetPosition(leftBucketMotor.getCurrentPosition());
-//                leftBucketMotor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-//                leftBucketMotor.setPower(0);
-//            }
 
             if(rightBumper && !bumperHeld)
             {
                 telemetry.addData("right bumper pressed", "");
-                if(rightBumperPos == 0.6)
+                if(rightBumperPos == 0.2)
                 {
-                    rightBumperPos = 0;
+                    rightBumperPos = .6;
                 }
-                else if(rightBumperPos == 0)
+                else if(rightBumperPos == .6)
                 {
-                    rightBumperPos = 0.6;
+                    rightBumperPos = 0.2;
                 }
             }
-            telemetry.addData("bucketRotatePos", rightBumperPos);
 
-            telemetry.addData("rightBucketMotorPos", rightBucketMotor.getCurrentPosition());
-            telemetry.addData("leftBucketMotorPos", leftBucketMotor.getCurrentPosition());
+            if(leftBumper && !leftBumperHeld)
+            {
+                telemetry.addData("leftBumperPressed", leftBumperPos);
+                if(leftBumperPos == 0)
+                {
+                    leftBumperPos = 0.8;
+                    telemetry.addData("Left Bumper Pos set to 1", "");
+                }
+                else if(leftBumperPos == 0.8)
+                {
+                    leftBumperPos = 0;
+                }
+            }
+
+
+
+            final double z = 1;
+
 
             telemetry.addData("right side pos", rightSlide.getCurrentPosition());
             telemetry.addData("left side pos", leftSlide.getCurrentPosition());
 
-            telemetry.addData("backRightPosition", backRightMotor.getCurrentPosition());
-            telemetry.addData("backLeftPosition", backLeftMotor.getCurrentPosition());
-            telemetry.addData("frontRightPosition", frontRightMotor.getCurrentPosition());
-            telemetry.addData("frontLeftPosition", frontLeftMotor.getCurrentPosition());
-
+            telemetry.addData("backLeftMotorPower", backLeftMotor.getPower());
+            telemetry.addData("backRightMotorPower", backRightMotor.getPower());
+            telemetry.addData("frontRightMotorPower", frontRightMotor.getPower());
+            telemetry.addData("frontLeftMotorPower", frontLeftMotor.getPower());
 
             telemetry.update();
 
-            bucketRotateServo.setPosition(rightBumperPos);
-
-
-//            if(rightBumper){
-//                bumperHeld = true;
-//            }
-//            else{
-//                bumperHeld = false;
-//            }
+            clawGrabServo.setPosition(rightBumperPos);
+            clawFlipServo.setPosition(leftBumperPos);
 
             bumperHeld = rightBumper;
-
-        } //End of while loop
-
-        activateYellowPipelineCamera1(camera);
-        //camera.closeCameraDevice();
+            leftBumperHeld = leftBumper;
+        }
     }
-    int x = 0;
-
 }
