@@ -152,7 +152,9 @@ public class gyroSensorOrientation{
         double distance = Math.abs(currentDegrees - wantedDegrees);
         double distanceMagnitude = distance / 3.6;
 
-        double power = 0.9 * distanceMagnitude;
+        double power = 1 * distanceMagnitude;
+
+        if(power > 1) power = 1;
 
         telemetry.addData("Distance from target orientation", distance);
         telemetry.addData("Distance Magnitude", distanceMagnitude);

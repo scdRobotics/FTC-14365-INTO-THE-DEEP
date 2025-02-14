@@ -24,7 +24,7 @@ import org.openftc.easyopencv.OpenCvCameraRotation;
 import java.util.ArrayList;
 
 @Autonomous
-public class BasicAutonomous extends LinearOpMode {
+public class TurnTestAuto extends LinearOpMode {
     @Override
 
     public void runOpMode() throws InterruptedException {
@@ -40,7 +40,7 @@ public class BasicAutonomous extends LinearOpMode {
         CRServo rightSlideIntakeServo = hardwareMap.crservo.get("rightSlideIntakeServo");
 
 
-       // CRServo servo = hardwareMap.crservo.get("servo");
+        // CRServo servo = hardwareMap.crservo.get("servo");
 
         frontRightMotor.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         frontLeftMotor.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
@@ -80,83 +80,42 @@ public class BasicAutonomous extends LinearOpMode {
 
         waitForStart();
 
-        intake();
-        forward(900, 1);
-        stopIntake();
+       for(int i = -180 ; i < 180 ; i += 45)
+        {
+            turn(i);
 
-        moveSlide(2700);
-
-        forward(300, 1);
-
-        moveSlide(-1200);
-
-        backwards(650, 1);
-
-        turn(-90);
-
-        forward(1200, 1);
-
-        turn(6);
-
-        turn(6);
-
-        moveSlide(-1400);
-
-        backwards(1000, 0.4);
-
-        forward(2000, 1);
-
-        turn(13);
-
-        backwards(2200, 0.4);
-
-        forward(2200, 1);
-
-        turn(35);
-
-        backwards(2400, 0.4);
-
-        //forward(1500, 0.4);
-
-        //turn(0, imu);
-
+            sleep(2500);
+        }
     }
 
     void turn(double desiredOrientation)
     {
         double robotHeading;
 
+
+
         DcMotor frontLeftMotor = hardwareMap.dcMotor.get("frontLeft");
         DcMotor backLeftMotor = hardwareMap.dcMotor.get("backLeft");
         DcMotor frontRightMotor = hardwareMap.dcMotor.get("frontRight");
         DcMotor backRightMotor = hardwareMap.dcMotor.get("backRight");
 
-        IMU imu = hardwareMap.get(IMU.class, "imu");
-        IMU.Parameters parameters = new IMU.Parameters(new RevHubOrientationOnRobot(
-                RevHubOrientationOnRobot.LogoFacingDirection.UP,
-                RevHubOrientationOnRobot.UsbFacingDirection.FORWARD));
-        imu.initialize(parameters);
-
-        long startTime = System.currentTimeMillis();
-
         while(true)
         {
-
+            IMU imu = hardwareMap.get(IMU.class, "imu");
+            IMU.Parameters parameters = new IMU.Parameters(new RevHubOrientationOnRobot(
+                    RevHubOrientationOnRobot.LogoFacingDirection.UP,
+                    RevHubOrientationOnRobot.UsbFacingDirection.FORWARD));
+            imu.initialize(parameters);
             robotHeading = imu.getRobotYawPitchRollAngles().getYaw(AngleUnit.DEGREES);
+
+
 
             gyroSensorOrientation.autoOrient(robotHeading, desiredOrientation, 0, frontLeftMotor, frontRightMotor, backRightMotor, backLeftMotor, telemetry);
 
-            if (gyroSensorOrientation.phase == "normal")
+            if(gyroSensorOrientation.phase == "normal")
             {
                 break;
             }
-
-            if(System.currentTimeMillis() - startTime > 3000)
-            {
-                break;
-            }
-            telemetry.addData("turn time",  System.currentTimeMillis() - startTime);
-            telemetry.addData("time left", 3000 - (System.currentTimeMillis() - startTime));
 
             telemetry.addData("robotHeading", robotHeading);
         }
@@ -210,43 +169,7 @@ public class BasicAutonomous extends LinearOpMode {
 
     }
 
-
-    void intake()
-    {
-        CRServo leftSlideIntakeServo = hardwareMap.crservo.get("leftSlideIntakeServo");
-        CRServo rightSlideIntakeServo = hardwareMap.crservo.get("rightSlideIntakeServo");
-
-        ArrayList<CRServo> servos = new ArrayList<CRServo>();
-
-        servos.add(leftSlideIntakeServo);
-        servos.add(rightSlideIntakeServo);
-
-        leftSlideIntakeServo.setDirection(CRServo.Direction.REVERSE);
-        rightSlideIntakeServo.setDirection(CRServo.Direction.FORWARD);
-
-        for(CRServo servo : servos)
-        {
-            servo.setPower(1);
-        }
-    }
-
-    void stopIntake()
-    {
-        CRServo leftSlideIntakeServo = hardwareMap.crservo.get("leftSlideIntakeServo");
-        CRServo rightSlideIntakeServo = hardwareMap.crservo.get("rightSlideIntakeServo");
-
-        ArrayList<CRServo> servos = new ArrayList<CRServo>();
-
-        servos.add(leftSlideIntakeServo);
-        servos.add(rightSlideIntakeServo);
-
-        for(CRServo servo : servos)
-        {
-            servo.setPower(0);
-        }
-    }
-
-    void backwards(int desiredPosition, double power)
+    void backwards(int desiredPosition)
     {
         boolean isFinished = false;
         DcMotor frontLeftMotor = hardwareMap.dcMotor.get("frontLeft");
@@ -267,7 +190,7 @@ public class BasicAutonomous extends LinearOpMode {
 
             motor.setTargetPosition(desiredPosition);
             motor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-            motor.setPower(power);
+            motor.setPower(0.6);
         }
 
         while(true)
@@ -320,7 +243,10 @@ public class BasicAutonomous extends LinearOpMode {
         {
             leftSlideIntakeServo.setDirection(DcMotorSimple.Direction.REVERSE);
 
-            intake();
+            for(CRServo servo : servos)
+            {
+                servo.setPower(1);
+            }
         }
 
 
@@ -340,7 +266,10 @@ public class BasicAutonomous extends LinearOpMode {
                 {
                     motor.setTargetPosition(motor.getCurrentPosition());
                 }
-                stopIntake();
+                for(CRServo servo : servos)
+                {
+                    servo.setPower(0);
+                }
                 break;
             }
             if(Math.abs(Math.abs(leftSlideMotor.getCurrentPosition()) - Math.abs(leftSlideMotor.getTargetPosition())) < 40)
@@ -349,7 +278,10 @@ public class BasicAutonomous extends LinearOpMode {
                 {
                     motor.setTargetPosition(motor.getCurrentPosition());
                 }
-                stopIntake();
+                for(CRServo servo : servos)
+                {
+                    servo.setPower(0);
+                }
                 break;
             }
 
