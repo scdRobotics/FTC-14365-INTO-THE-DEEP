@@ -29,7 +29,7 @@ import org.openftc.easyopencv.OpenCvCameraRotation;
 import java.util.ArrayList;
 
 @Autonomous
-public class BasicAutonomous extends LinearOpMode {
+public class BlueBasicAuto extends LinearOpMode {
 
 
 
@@ -72,7 +72,7 @@ public class BasicAutonomous extends LinearOpMode {
         CRServo rightSlideIntakeServo = hardwareMap.crservo.get("rightSlideIntakeServo");
 
 
-       // CRServo servo = hardwareMap.crservo.get("servo");
+        // CRServo servo = hardwareMap.crservo.get("servo");
 
         frontRightMotor.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         frontLeftMotor.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
@@ -119,24 +119,24 @@ public class BasicAutonomous extends LinearOpMode {
         waitForStart();
 
         //first clip
-        forwardAndMoveSlide(800 , 1, 2700, true);
-        forward(450, 1);
+        forwardAndMoveSlide(700 , 1, 2700, true);
+        forward(550, 1);
 
         moveSlide(-800);
 
         backwards(250, 1);
 
         //push sample
-        //turn(-45, false);
-        turn(-40, false);
-        strafe(2150);
-        forward(600, 1);
-        turn(-5.1, true);
+        turn(-55, false);
+        strafe(2000);
+        forward(450, 1);
+        turn(-5, false);
 
 
-        forward(900, 1);
 
-        turn(6, true);
+        forward(1350, 1);
+
+        turn(10, true);
 
         backwards(1900, 1);
 
@@ -160,7 +160,7 @@ public class BasicAutonomous extends LinearOpMode {
 
         forward(1250, 1);
 
-        moveSlide(-1000);
+        moveSlide(-800);
 
         //second clip
 
@@ -556,7 +556,7 @@ public class BasicAutonomous extends LinearOpMode {
             leftSlideMotor.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
             leftSlideMotor.setPower(-0.7);
 
-            intake(0.15);
+            intake(0.5);
         }
         else
         {
@@ -594,15 +594,15 @@ public class BasicAutonomous extends LinearOpMode {
 
     void GoToPose(Pose2D currentPose, Pose2D wantedPose)
     {
-       // if(currentPose.getX())
+        // if(currentPose.getX())
     }
-int i = 0;
+    int i = 0;
     void trackOdometry()
     {
 
-            DcMotor par0 = hardwareMap.dcMotor.get("bucketSlideMotor");
-            DcMotor par1 = hardwareMap.dcMotor.get("par1");
-            DcMotor perp = hardwareMap.dcMotor.get("rightSlide");
+        DcMotor par0 = hardwareMap.dcMotor.get("bucketSlideMotor");
+        DcMotor par1 = hardwareMap.dcMotor.get("par1");
+        DcMotor perp = hardwareMap.dcMotor.get("rightSlide");
         if(i==0)
         {
             par0.setDirection(DcMotorSimple.Direction.REVERSE);

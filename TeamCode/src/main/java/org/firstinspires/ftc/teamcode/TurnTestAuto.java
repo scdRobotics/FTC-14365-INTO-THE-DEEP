@@ -80,42 +80,47 @@ public class TurnTestAuto extends LinearOpMode {
 
         waitForStart();
 
-       for(int i = -180 ; i < 180 ; i += 45)
-        {
-            turn(i);
+        strafe(1000);
+        turn(-30);
+        strafe(1000);
 
-            sleep(2500);
-        }
     }
 
     void turn(double desiredOrientation)
     {
         double robotHeading;
 
-
-
         DcMotor frontLeftMotor = hardwareMap.dcMotor.get("frontLeft");
         DcMotor backLeftMotor = hardwareMap.dcMotor.get("backLeft");
         DcMotor frontRightMotor = hardwareMap.dcMotor.get("frontRight");
         DcMotor backRightMotor = hardwareMap.dcMotor.get("backRight");
 
+        IMU imu = hardwareMap.get(IMU.class, "imu");
+        IMU.Parameters parameters = new IMU.Parameters(new RevHubOrientationOnRobot(
+                RevHubOrientationOnRobot.LogoFacingDirection.UP,
+                RevHubOrientationOnRobot.UsbFacingDirection.FORWARD));
+        imu.initialize(parameters);
+
+        long startTime = System.currentTimeMillis();
+
         while(true)
         {
-            IMU imu = hardwareMap.get(IMU.class, "imu");
-            IMU.Parameters parameters = new IMU.Parameters(new RevHubOrientationOnRobot(
-                    RevHubOrientationOnRobot.LogoFacingDirection.UP,
-                    RevHubOrientationOnRobot.UsbFacingDirection.FORWARD));
-            imu.initialize(parameters);
+
             robotHeading = imu.getRobotYawPitchRollAngles().getYaw(AngleUnit.DEGREES);
-
-
 
             gyroSensorOrientation.autoOrient(robotHeading, desiredOrientation, 0, frontLeftMotor, frontRightMotor, backRightMotor, backLeftMotor, telemetry);
 
-            if(gyroSensorOrientation.phase == "normal")
+            if (gyroSensorOrientation.phase == "normal")
             {
                 break;
             }
+
+            if(System.currentTimeMillis() - startTime > 3000)
+            {
+                break;
+            }
+            telemetry.addData("turn time",  System.currentTimeMillis() - startTime);
+            telemetry.addData("time left", 3000 - (System.currentTimeMillis() - startTime));
 
             telemetry.addData("robotHeading", robotHeading);
         }
@@ -123,8 +128,67 @@ public class TurnTestAuto extends LinearOpMode {
 
     void strafe(int desiredPosition)
     {
+        double robotHeading;
 
+        DcMotor frontLeftMotor = hardwareMap.dcMotor.get("frontLeft");
+        DcMotor backLeftMotor = hardwareMap.dcMotor.get("backLeft");
+        DcMotor frontRightMotor = hardwareMap.dcMotor.get("frontRight");
+        DcMotor backRightMotor = hardwareMap.dcMotor.get("backRight");
+
+        IMU imu = hardwareMap.get(IMU.class, "imu");
+        IMU.Parameters parameters = new IMU.Parameters(new RevHubOrientationOnRobot(
+                RevHubOrientationOnRobot.LogoFacingDirection.UP,
+                RevHubOrientationOnRobot.UsbFacingDirection.FORWARD));
+        imu.initialize(parameters);
+
+        ArrayList<DcMotor> motors = new ArrayList<DcMotor>();
+        motors.add(frontLeftMotor);
+        motors.add(frontRightMotor);
+        motors.add(backLeftMotor);
+        motors.add(backRightMotor);
+
+        for(DcMotor motor : motors)
+        {
+            motor.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        }
+
+
+        frontLeftMotor.setTargetPosition(desiredPosition);
+        frontLeftMotor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+        frontLeftMotor.setPower(0.4);
+
+        backLeftMotor.setTargetPosition(-desiredPosition);
+        backLeftMotor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+        backLeftMotor.setPower(0.4);
+
+        frontRightMotor.setTargetPosition(desiredPosition);
+        frontRightMotor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+        frontRightMotor.setPower(0.4);
+
+        backRightMotor.setTargetPosition(-desiredPosition);
+        backRightMotor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+        backRightMotor.setPower(0.4);
+
+        telemetry.addData("Is Strafing", "");
+        telemetry.update();
+
+        while(true)
+        {
+            double frontRight = Math.abs(frontRightMotor.getCurrentPosition());
+            double frontLeft = Math.abs(frontLeftMotor.getCurrentPosition());
+            double backRight = Math.abs(backRightMotor.getCurrentPosition());
+            double backLeft = Math.abs(backLeftMotor.getCurrentPosition());
+            double desiredPos = Math.abs(desiredPosition);
+
+            double currentOrientation = imu.getRobotYawPitchRollAngles().getYaw(AngleUnit.DEGREES);
+
+            if(frontRight - desiredPos > 5 && frontLeft - desiredPos > 5 && backRight - desiredPos > 5 && backLeft - desiredPos > 5)
+            {
+                break;
+            }
+        }
     }
+
 
     void forward(int desiredPosition, double power)
     {

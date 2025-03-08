@@ -166,6 +166,8 @@ public class SampleDrive extends LinearOpMode{
             boolean Gp2DPadUp = gamepad2.dpad_up;
             boolean Gp2DPadDown = gamepad2.dpad_down;
 
+            boolean hangButton = gamepad2.start;
+
 
 
             if(rightTrigger > .5d) rightTriggerDown = true;
@@ -264,11 +266,11 @@ public class SampleDrive extends LinearOpMode{
                     //double backLeftPower = (y - rx);
 
                     //front wheel
-                    frontRightPower = ((y * 2) - (x) + rx);
+                    frontRightPower = ((y * 2) + (x) + rx);
                     //double frontRightPower = (y + rx);
 
                     //right wheel
-                    backRightPower = ((y * 2) + (x) + rx);
+                    backRightPower = ((y * 2) - (x) + rx);
                     //double backRightPower = (-x + rx);
 
 
@@ -344,63 +346,54 @@ public class SampleDrive extends LinearOpMode{
 
             if(dPadUp)
             {
-                leftSlide.setTargetPosition(leftSlide.getCurrentPosition() - 50);
+                leftSlide.setTargetPosition(leftSlide.getCurrentPosition() - 1250);
                 leftSlide.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-                rightSlide.setTargetPosition(rightSlide.getCurrentPosition() + 50);
-                rightSlide.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-                leftSlide.setPower(1);
-                rightSlide.setPower(1);
+                leftSlide.setPower(-0.4);
+                rightSlide.setPower(0.4);
             }
             if(dPadDown)
             {
-                leftSlide.setTargetPosition(leftSlide.getCurrentPosition() + 50);
+                leftSlide.setTargetPosition(leftSlide.getCurrentPosition() + 1250);
                 leftSlide.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-                rightSlide.setTargetPosition(rightSlide.getCurrentPosition() - 50);
-                rightSlide.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-                leftSlide.setPower(1);
-                rightSlide.setPower(1);
+                leftSlide.setPower(0.4);
+                rightSlide.setPower(-0.4);
             }
 
             if(Gp2DPadUp)
             {
-                leftSlide.setTargetPosition(leftSlide.getCurrentPosition() - 1000);
+                leftSlide.setTargetPosition(leftSlide.getCurrentPosition() - 1250);
                 leftSlide.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-                rightSlide.setTargetPosition(rightSlide.getCurrentPosition() + 1000);
-                rightSlide.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-                leftSlide.setPower(1);
+                leftSlide.setPower(-1);
                 rightSlide.setPower(1);
             }
             if(Gp2DPadDown)
             {
-                leftSlide.setTargetPosition(leftSlide.getCurrentPosition() + 1000);
+                leftSlide.setTargetPosition(leftSlide.getCurrentPosition() + 1250);
                 leftSlide.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-                rightSlide.setTargetPosition(rightSlide.getCurrentPosition() - 1000);
-                rightSlide.setMode(DcMotor.RunMode.RUN_TO_POSITION);
                 leftSlide.setPower(1);
-                rightSlide.setPower(1);
+                rightSlide.setPower(-1);
             }
 
             if(!Gp2DPadDown && !Gp2DPadUp && !dPadUp && !dPadDown)
             {
+                telemetry.addData("stop moving slides", "");
                 leftSlide.setTargetPosition(leftSlide.getCurrentPosition());
                 leftSlide.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-                rightSlide.setTargetPosition(rightSlide.getCurrentPosition());
-                rightSlide.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+                leftSlide.setPower(1);
+                rightSlide.setPower(0);
             }
+
+            bucketMotor.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
             if(Gp2YButtonDown)
             {
-                bucketMotor.setTargetPosition(bucketMotor.getCurrentPosition() + 100);
-                bucketMotor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
                 bucketMotor.setPower(0.6);
             }
             if(Gp2AButtonDown) {
-                bucketMotor.setTargetPosition(bucketMotor.getCurrentPosition() - 100);
-                bucketMotor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-                bucketMotor.setPower(0.6);
+
+                bucketMotor.setPower(-0.6);
             }
-            if(!Gp2AButtonDown && !Gp2YButtonDown) {
-                bucketMotor.setTargetPosition(bucketMotor.getCurrentPosition());
-                bucketMotor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+            if(!Gp2AButtonDown && !Gp2YButtonDown)
+            {
                 bucketMotor.setPower(0.0);
             }
 
@@ -422,12 +415,29 @@ public class SampleDrive extends LinearOpMode{
                 telemetry.addData("leftBumperPressed", leftBumperPos);
                 if(leftBumperPos == 0)
                 {
-                    leftBumperPos = 0.8;
-                    telemetry.addData("Left Bumper Pos set to 1", "");
+                    leftBumperPos = 0.7;
                 }
-                else if(leftBumperPos == 0.8)
+                else if(leftBumperPos == 0.7)
                 {
                     leftBumperPos = 0;
+                }
+            }
+            telemetry.addData("Left Bumper Pos set to", leftBumperPos);
+
+            if(hangButton)
+            {
+                double startTime = System.currentTimeMillis();
+                while(true)
+                {
+
+                    hangButton = gamepad2.start;
+
+                    leftSlide.setTargetPosition(leftSlide.getCurrentPosition() + 1250);
+                    leftSlide.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+                    leftSlide.setPower(1);
+                    rightSlide.setPower(-1);
+
+                    if(hangButton && System.currentTimeMillis() - startTime > 100) break;
                 }
             }
 
